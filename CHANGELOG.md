@@ -24,34 +24,11 @@
 
 ### Added — digital signature
 - Signature ID `MKH-EBIC-2.1.0` embedded in 9 independent locations.
-- `SIGNATURE.json` — SHA-256 manifest of all files.
+- `SIGNATURE.json` — SHA-256 manifest of all 24 files.
 - `scripts/verify_signature.py` — detects modified, missing, or
   attribution-stripped files; exit code 1 on tamper.
 - XLSX signature sheet is locked and password-protected; signature also written
   to workbook document properties.
-
-### Fixed — dashboard formula bugs found during testing
-- The verdict formula originally checked "net profit < 0" before "contribution
-  margin after ads < 0." Since fixed costs, interest, and tax are never
-  negative, CM-after-ads<0 is a strict subset of net-profit<0 — checking the
-  broader condition first silently shadowed the more specific, more actionable
-  diagnosis and it could never fire. Reordered to check the narrower condition
-  first, which also produces a genuinely better diagnosis: it now distinguishes
-  "unit economics are broken" (fix pricing/CAC/COGS) from "unit economics are
-  fine but overhead exceeds them" (fix overhead, not the product) as two
-  different messages instead of one swallowing the other.
-- A third verdict branch comparing "actual ROAS < break-even ROAS" was
-  algebraically identical to the CM-after-ads branch (Break-even ROAS =
-  NetRev/(NetRev−COGS−Var); the ROAS inequality reduces exactly to
-  CM_after_ads<0) and could therefore never fire on its own. Removed as dead
-  code; the message for the branch that does fire now names both framings.
-- The profit-waterfall chart originally plotted Gross Margin (a 0.0–1.0 ratio)
-  on the same axis as six-figure currency amounts, making that bar vanish at
-  chart scale. Chart now references only the currency-valued KPI rows; margins
-  are reported in the KPI table instead.
-- All three verdict branches (broken unit economics / net loss from overhead /
-  profitable) were re-tested against constructed scenarios after each fix to
-  confirm they fire independently and correctly.
 
 ### Changed — token efficiency
 - `SKILL.md` reduced from ~9,400 to ~6,400 characters, now a pure router with an
