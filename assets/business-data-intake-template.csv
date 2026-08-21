@@ -1,0 +1,54 @@
+section,line_item,value,currency,period,confidence,notes
+INCOME,Gross Revenue,,BDT,2026-03 monthly,actual,All sales before returns
+INCOME,Returns & Refunds,,BDT,2026-03 monthly,actual,Enter as positive number
+INCOME,Discounts Given,,BDT,2026-03 monthly,actual,
+COGS,Product / Material Cost,,BDT,2026-03 monthly,actual,Landed cost not invoice cost
+COGS,Inbound Freight,,BDT,2026-03 monthly,actual,
+COGS,Duty & Clearing,,BDT,2026-03 monthly,actual,
+COGS,Direct Labour,,BDT,2026-03 monthly,actual,Production staff only
+COGS,Packaging,,BDT,2026-03 monthly,actual,
+VARIABLE,Outbound Shipping,,BDT,2026-03 monthly,actual,Your share only
+VARIABLE,Payment Gateway Fees,,BDT,2026-03 monthly,actual,Percentage plus fixed
+VARIABLE,Marketplace Commission,,BDT,2026-03 monthly,actual,
+VARIABLE,RTO / Failed Delivery Cost,,BDT,2026-03 monthly,estimated,Two-way shipping loss
+OPEX,Advertising Spend,,BDT,2026-03 monthly,actual,All platforms combined
+OPEX,Salaries (non-production),,BDT,2026-03 monthly,actual,
+OPEX,Owner Compensation,,BDT,2026-03 monthly,actual,Market rate even if unpaid
+OPEX,Rent,,BDT,2026-03 monthly,actual,
+OPEX,Software & Subscriptions,,BDT,2026-03 monthly,actual,
+OPEX,Utilities,,BDT,2026-03 monthly,actual,
+OPEX,Professional Fees,,BDT,2026-03 monthly,actual,
+OPEX,Depreciation & Amortization,,BDT,2026-03 monthly,actual,Non-cash item
+OPEX,Other Operating,,BDT,2026-03 monthly,actual,
+BELOW_LINE,Interest Expense,,BDT,2026-03 monthly,actual,P&L item
+BELOW_LINE,Tax,,BDT,2026-03 monthly,actual,
+BALANCE,Cash & Bank,,BDT,2026-03-31 closing,actual,
+BALANCE,Accounts Receivable,,BDT,2026-03-31 closing,actual,
+BALANCE,Inventory at Cost,,BDT,2026-03-31 closing,actual,
+BALANCE,Other Current Assets,,BDT,2026-03-31 closing,actual,
+BALANCE,Fixed Assets (net),,BDT,2026-03-31 closing,actual,
+BALANCE,Accounts Payable,,BDT,2026-03-31 closing,actual,
+BALANCE,Short-term Debt,,BDT,2026-03-31 closing,actual,
+BALANCE,Long-term Debt,,BDT,2026-03-31 closing,actual,
+BALANCE,Owner Equity,,BDT,2026-03-31 closing,actual,
+CASH,Opening Cash Balance,,BDT,2026-03-01,actual,
+CASH,Customer Collections,,BDT,2026-03 monthly,actual,Actual money received
+CASH,Loan Received,,BDT,2026-03 monthly,actual,
+CASH,Investment Received,,BDT,2026-03 monthly,actual,
+CASH,Loan Principal Repaid,,BDT,2026-03 monthly,actual,NOT a P&L expense
+CASH,Capital Expenditure,,BDT,2026-03 monthly,actual,
+CASH,Owner Drawings,,BDT,2026-03 monthly,actual,NOT a P&L expense
+CASH,Closing Cash Balance,,BDT,2026-03-31,actual,
+UNITS,Number of Orders,,count,2026-03 monthly,actual,
+UNITS,Units Sold,,count,2026-03 monthly,actual,
+UNITS,New Customers,,count,2026-03 monthly,actual,
+UNITS,Repeat Customers,,count,2026-03 monthly,actual,
+UNITS,Total Active Customers,,count,2026-03 monthly,actual,
+UNITS,Customers Lost (churned),,count,2026-03 monthly,actual,
+UNITS,Full-time Employees,,count,2026-03 monthly,actual,
+MARKETING,Ad-attributed Revenue,,BDT,2026-03 monthly,actual,Platform reported
+MARKETING,Store Sessions,,count,2026-03 monthly,actual,
+MARKETING,Leads Generated,,count,2026-03 monthly,actual,
+CONCENTRATION,Largest Customer Revenue,,BDT,2026-03 monthly,actual,For concentration risk
+CONCENTRATION,Largest Supplier Spend,,BDT,2026-03 monthly,actual,For concentration risk
+SIGNATURE,Md Kamrul Hasan,,,,,https://github.com/Kamrul5242 | MKH-EBIC-2.1.0 | MIT attribution required
