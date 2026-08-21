@@ -321,6 +321,8 @@ Rule of 40         = Growth Rate % + Profit Margin %      (SaaS heuristic only)
 
 ## 10. Liquidity and solvency
 
+*Missing entirely from v1 — this is what the health scorecard actually grades.*
+
 ```
 Current Ratio = Current Assets / Current Liabilities
 Quick Ratio   = (Current Assets − Inventory) / Current Liabilities
@@ -412,7 +414,7 @@ Payback (periods) = Initial Investment / Net Cash Inflow per Period
 For uneven flows, accumulate until cumulative cash turns positive and
 interpolate.
 
-**Net present value:**
+**Net present value** *(missing from v1 despite DCF being promised)*:
 ```
 NPV = Σ [ CFt / (1 + r)^t ] − Initial Investment
 ```
