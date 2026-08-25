@@ -1,0 +1,162 @@
+{
+  "skill": "entrepreneur-business-intelligence-cfo",
+  "version": "2.1.0",
+  "author": "Md Kamrul Hasan",
+  "github": "https://github.com/Kamrul5242",
+  "signature": "MKH-EBIC-2.1.0",
+  "license": "MIT — attribution required in all copies",
+  "notice": "This manifest records a SHA-256 hash of every file at publication. Any modification changes the hash and is detected by verify_signature.py. Removing the attribution does not remove the author's rights under the MIT License.",
+  "file_count": 30,
+  "files": {
+    "CHANGELOG.md": {
+      "sha256": "887e1d2fde5c8cc448f80ece2ad8a07288f689d611f524acad6f3d3c9ba4a295",
+      "bytes": 5740,
+      "signed": true
+    },
+    "LICENSE": {
+      "sha256": "21354c2b02202bbaca75c5d88134648b5a66af81b28d41e44df52e96c9de2642",
+      "bytes": 1376,
+      "signed": true
+    },
+    "README.md": {
+      "sha256": "f14bedda8f8d1febb49e7c55266829e2f2dd20ff2089acf1b7df185a5be6c8fa",
+      "bytes": 10400,
+      "signed": true
+    },
+    "SKILL.md": {
+      "sha256": "83d7c1de1e1aea29bb22b0b959df53d9cea23e1c132f1ba2699fb8ceb1cc957d",
+      "bytes": 7524,
+      "signed": true
+    },
+    "references/01-formula-library.md": {
+      "sha256": "b488fdb765f1463b0e7f346e9eea335c269e515870219aa012e8c5133af12142",
+      "bytes": 17203,
+      "signed": true
+    },
+    "references/02-diagnostics-playbook.md": {
+      "sha256": "4f68bec0167cab62da5f39036afca07f7094fac91d0bb5eb51148f2dbd806901",
+      "bytes": 8399,
+      "signed": true
+    },
+    "references/03-output-templates.md": {
+      "sha256": "06fc74f0091661cd68df18536221cbed2247bb6db8ca0c3971fbd2d2a43396b1",
+      "bytes": 3709,
+      "signed": true
+    },
+    "references/04-benchmarks-and-ranges.md": {
+      "sha256": "6817cb9f0ade3cad96bf40b1fd54fe523978fe5c93e8d45aafaed161c0308a56",
+      "bytes": 4570,
+      "signed": true
+    },
+    "references/05-ecommerce-and-inventory.md": {
+      "sha256": "ce042a3018e5f77d4df80e5a765bf1ead4a60874730006e63b68bbdbd3a549b8",
+      "bytes": 7128,
+      "signed": true
+    },
+    "references/06-worked-examples.md": {
+      "sha256": "ff88a5abfc57561305022d7b91eec69a6f85a4570cd22b44245f7055a8b75a0b",
+      "bytes": 8013,
+      "signed": true
+    },
+    "references/07-data-intake.md": {
+      "sha256": "47acd09a8b8e806663fe77244bffbaaa11dbe515d610002d73fa2baf7dcee75b",
+      "bytes": 4390,
+      "signed": true
+    },
+    "references/08-currency.md": {
+      "sha256": "95e41e62dcafbea66c70f8ec725e526c0aa5788d614c25fb7190b27f3d00185a",
+      "bytes": 5543,
+      "signed": true
+    },
+    "assets/business-data-intake-template.csv": {
+      "sha256": "96dd8415383dce791dfe02e34953056bb3b66f5fdb7344b49eb4af48a932414a",
+      "bytes": 3343,
+      "signed": true
+    },
+    "assets/cfo-premium-dashboard.xlsx": {
+      "sha256": "2283017dc07915308eb6cc7789e07a38ea0c5abd266c1fe55b000fbf5d7a9dd7",
+      "bytes": 25538,
+      "signed": true
+    },
+    "scripts/build_dashboard.py": {
+      "sha256": "f46df6427f43b48336064b4dc6ca6d1c13f19714df6950da74096a6a3b8316f9",
+      "bytes": 33671,
+      "signed": true
+    },
+    "scripts/cfo_calc.py": {
+      "sha256": "21345cab1379a0a0915e8defe6186e4c4f1f7c5dc188a394d8120a9559d764e5",
+      "bytes": 15996,
+      "signed": true
+    },
+    "scripts/verify_signature.py": {
+      "sha256": "320bb0138abd2be92f8f8b7e8635732b92c4f9c4d4c1c0dd6c4475ecc0540a0b",
+      "bytes": 7481,
+      "signed": true
+    },
+    "platforms/AGENTS.md": {
+      "sha256": "818a41fc5d87ebb15b71ad9d1d2fad2c60a7d451712d0d14d55b4135d99551ab",
+      "bytes": 7826,
+      "signed": true
+    },
+    "platforms/copilot-instructions.md": {
+      "sha256": "1540c264a438f57d865959656f5545f8c92750d8141bd3348e00743f4bee5920",
+      "bytes": 7942,
+      "signed": true
+    },
+    "platforms/cursor-rule.mdc": {
+      "sha256": "fc2642c2f793cb069249f07f0658c5f4ac9cb5b3b016b0db6d41c8d639e4546f",
+      "bytes": 7950,
+      "signed": true
+    },
+    "platforms/gemini-gem-instructions.md": {
+      "sha256": "227fbdd3310ca5a11caff7d852729afb6423c384706ead5d6bbda5b208dccdf8",
+      "bytes": 7757,
+      "signed": true
+    },
+    "platforms/system-prompt.txt": {
+      "sha256": "227fbdd3310ca5a11caff7d852729afb6423c384706ead5d6bbda5b208dccdf8",
+      "bytes": 7757,
+      "signed": true
+    },
+    "platforms/universal-compact-core.md": {
+      "sha256": "227fbdd3310ca5a11caff7d852729afb6423c384706ead5d6bbda5b208dccdf8",
+      "bytes": 7757,
+      "signed": true
+    },
+    "platforms/windsurf-rules.md": {
+      "sha256": "69c1e8139a8797e86906bff3a79a7fb74d91ed531dac8ca9a2af05a649c1de12",
+      "bytes": 7817,
+      "signed": true
+    },
+    "docs/INSTALL.md": {
+      "sha256": "c5c2544ce21c06d867ff36e54e6b62bb5f9e764bfd57a960e7ec2a10ed9d66fe",
+      "bytes": 4165,
+      "signed": true
+    },
+    "docs/screenshots/01-setup.png": {
+      "sha256": "d90ff8e8b9652f780f85d6ad90f9038f61ebf31f1893983e257aaa4e282f703c",
+      "bytes": 249564,
+      "signed": false
+    },
+    "docs/screenshots/02-dashboard.png": {
+      "sha256": "fa0206f372279985b14b698e5a34a4677d64a9e4d66a9e3c796c2e33896cb6f6",
+      "bytes": 267943,
+      "signed": false
+    },
+    "docs/screenshots/03-scenarios.png": {
+      "sha256": "3c1db79a6f3041e95163444e1b89a437285967a9dbd401beeb5ca3caf555e94f",
+      "bytes": 253493,
+      "signed": false
+    },
+    "docs/screenshots/04-currency-reference.png": {
+      "sha256": "46736eb4eafe9950722cdb6a3ee984616c8ff6fafbc96877c742befe45530416",
+      "bytes": 177414,
+      "signed": false
+    },
+    "docs/screenshots/05-signature.png": {
+      "sha256": "5aaf5bfe5b2b205c245ee95042e8a56c01b955e077eb36720b97a20e27131dc8",
+      "bytes": 119148,
+      "signed": false
+    }
+  }
+}
