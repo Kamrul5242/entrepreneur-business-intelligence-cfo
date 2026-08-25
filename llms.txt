@@ -1,0 +1,47 @@
+# Entrepreneur Business Intelligence & CFO
+
+> An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 90-formula live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
+
+Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.1.0. Signature: MKH-EBIC-2.1.0, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
+
+This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (compact core fits the 8,000-character instruction cap), a Cursor `.mdc` rule, a Windsurf rule, GitHub Copilot instructions, a Gemini Gem, an `AGENTS.md` file, or a raw system prompt.
+
+## Core
+
+- [SKILL.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SKILL.md): The router. Token-budget policy, workflow, hard rules (never fabricate a number, never hide a loss), priority ladder (survival before growth), currency defaults.
+- [README.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/README.md): What the skill is, why it differs from a generic "act as a CFO" prompt, install instructions per platform.
+- [CHANGELOG.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/CHANGELOG.md): Version history, including the specific v1.0 errors corrected in v2.0 (missing liquidity/solvency formulas, undefined LTV, inconsistent margin denominators).
+- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of all 30 files, for tamper detection.
+- [LICENSE](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/LICENSE): MIT.
+
+## Reference library (loaded on demand, 1-3 files per question)
+
+- [references/01-formula-library.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/01-formula-library.md): Every formula — income statement, margins, EBITDA, break-even, unit economics (CAC/LTV), marketing (ROAS/MER), growth, liquidity, working capital, inventory, investment appraisal (NPV/IRR), valuation, funding/dilution, debt. Each states its inputs, units, and the common mistake.
+- [references/02-diagnostics-playbook.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/02-diagnostics-playbook.md): 8 prioritized diagnosis patterns, from Cash Emergency to Healthy Growth, with root-cause decision trees.
+- [references/03-output-templates.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/03-output-templates.md): Four output formats sized to the question, so a one-line question doesn't produce a full report.
+- [references/04-benchmarks-and-ranges.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/04-benchmarks-and-ranges.md): Orientation ranges, explicitly labeled as not standards.
+- [references/05-ecommerce-and-inventory.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/05-ecommerce-and-inventory.md): Print-on-demand, marketplace, pre-order economics, apparel/garment sourcing math, landed cost, RTO/COD provision.
+- [references/06-worked-examples.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/06-worked-examples.md): Three fully verified end-to-end analyses with arithmetic shown.
+- [references/07-data-intake.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/07-data-intake.md): How to handle messy, partial, or conflicting founder-supplied data.
+- [references/08-currency.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/references/08-currency.md): 34 currencies, BDT default, lakh/crore digit grouping, zero-decimal and three-decimal currency handling, FX exposure analysis.
+
+## Tools
+
+- [scripts/cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/cfo_calc.py): 10-command deterministic calculator (margins, unit economics, CAC, ROAS, runway, cash conversion cycle, NPV, loan/EMI, dilution, price-sensitivity testing). Standard library only, no dependencies.
+- [scripts/build_dashboard.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/build_dashboard.py): Reproducibly builds the Excel dashboard via openpyxl.
+- [scripts/verify_signature.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/verify_signature.py): Verifies every file against SIGNATURE.json; reports VERIFIED or TAMPERED with file-level detail.
+- [assets/cfo-premium-dashboard.xlsx](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/cfo-premium-dashboard.xlsx): 5-sheet live Excel dashboard, 90 formulas, zero hardcoded results, 34-currency dropdown, automatic root-cause verdict.
+- [assets/business-data-intake-template.csv](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/business-data-intake-template.csv): 53-line structured intake sheet for founders to fill before analysis.
+
+## Install
+
+- [docs/INSTALL.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/docs/INSTALL.md): Full setup instructions for every supported platform.
+- [platforms/](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/tree/main/platforms): Pre-formatted adapters — universal-compact-core.md, system-prompt.txt, cursor-rule.mdc, windsurf-rules.md, copilot-instructions.md, gemini-gem-instructions.md, AGENTS.md.
+
+## What makes this different from a generic "act as a CFO" prompt
+
+It never guesses a number it wasn't given. It always shows the formula behind a recommendation. It prioritizes survival (cash runway) before it will discuss growth. It distinguishes revenue from profit from cash — explicitly, every time — because conflating those three is the most common founder financial error. It defaults to Bangladeshi Taka rather than assuming USD, and correctly parses South Asian lakh/crore number formatting, which most financial AI tools do not handle.
+
+## Optional
+
+- [CITATION.cff](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/CITATION.cff): Machine-readable citation metadata.
