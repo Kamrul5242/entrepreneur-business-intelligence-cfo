@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this skill, please cite it using the metadata below."
+type: software
+title: "Entrepreneur Business Intelligence & CFO"
+version: "2.1.0"
+date-released: "2026-08-20"
+abstract: >-
+  An AI skill (SKILL.md architecture) that acts as a practical CFO, growth
+  strategist, and operations analyst for founders and small businesses. It
+  runs a fixed Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test,
+  Recommend pipeline on every financial question rather than reciting ratio
+  definitions, offloads arithmetic to a deterministic Python calculator,
+  ships a 90-formula live Excel dashboard, and defaults to Bangladeshi Taka
+  with support for 34 currencies and South Asian lakh/crore digit grouping.
+  Includes a SHA-256 signed integrity manifest and is portable across
+  Claude, OpenAI Custom GPTs, Cursor, Windsurf, GitHub Copilot, Gemini Gems,
+  and AGENTS.md-compatible agents.
+authors:
+  - given-names: "Md Kamrul"
+    family-names: "Hasan"
+    alias: "Kamrul5242"
+    website: "https://github.com/Kamrul5242"
+repository-code: "https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo"
+url: "https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo"
+license: MIT
+keywords:
+  - cfo
+  - business-intelligence
+  - financial-analysis
+  - ai-skill
+  - claude-skill
+  - llm-agent-skill
+  - unit-economics
+  - cash-flow-analysis
+  - startup-finance
+  - founder-tools
+  - financial-modeling
+  - prompt-engineering
+  - agents-md
+  - cursor-rules
+  - bangladesh
+  - bdt-currency
+  - small-business-finance
+  - break-even-analysis
+  - runway-calculator
+  - roas-cac-ltv
