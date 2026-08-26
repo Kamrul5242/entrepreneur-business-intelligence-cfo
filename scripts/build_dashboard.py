@@ -35,7 +35,7 @@ from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.formatting.rule import CellIsRule, DataBarRule
 from openpyxl.comments import Comment
 
-SIG = "MKH-EBIC-2.1.0"
+SIG = "MKH-EBIC-2.2.0"
 AUTHOR = "Md Kamrul Hasan"
 GH = "https://github.com/Kamrul5242"
 
@@ -609,6 +609,94 @@ sc.freeze_panes="A4"
 # =====================================================================
 # SHEET 4 — Ref (currency table)
 # =====================================================================
+# SHEET 4 — Trend (12 months)
+# =====================================================================
+tr = wb.create_sheet("4. Trend")
+tr.sheet_view.showGridLines = False
+banner(tr, 1, "12-MONTH TREND", span=13,
+       sub="One column per month. Fill the yellow rows; the rest calculates. "
+           "A single month cannot tell you whether a business is improving.")
+
+MON_FIRST, MON_LAST = 2, 13          # columns B..M
+TR_HDR = 4
+tr.cell(row=TR_HDR, column=1, value="Line item")
+for i in range(12):
+    tr.cell(row=TR_HDR, column=MON_FIRST + i, value=f"M{i+1}")
+style(tr, f"A{TR_HDR}:M{TR_HDR}", bold=True, fill=SLATE, color=WHITE, align="center")
+
+TR_IN = TR_HDR + 1                    # rows 5..9 are inputs
+TR_INPUTS = ["Net Revenue", "COGS", "Variable Costs (shipping, gateway, RTO)",
+             "Ad Spend", "Fixed Operating Costs"]
+for i, label in enumerate(TR_INPUTS):
+    tr.cell(row=TR_IN + i, column=1, value=label)
+style(tr, f"A{TR_IN}:A{TR_IN+4}", size=10)
+style(tr, f"B{TR_IN}:M{TR_IN+4}", color="0000FF", fill="FFFF00", align="right",
+      fmt='#,##0;(#,##0);-')
+
+TR_CALC = TR_IN + 6                   # rows 11..15 computed
+section(tr, TR_CALC - 1, "CALCULATED", span=13)
+TR_ROWS = ["Contribution", "Contribution Margin %", "Operating Profit",
+           "Operating Margin %", "Cumulative Operating Profit",
+           "Revenue Growth vs Prior Month %"]
+for i, label in enumerate(TR_ROWS):
+    tr.cell(row=TR_CALC + i, column=1, value=label)
+
+for i in range(12):
+    col = get_column_letter(MON_FIRST + i)
+    prev = get_column_letter(MON_FIRST + i - 1)
+    rev, cogs_r, var_r = f"{col}{TR_IN}", f"{col}{TR_IN+1}", f"{col}{TR_IN+2}"
+    ads_r, fix_r = f"{col}{TR_IN+3}", f"{col}{TR_IN+4}"
+    contrib = f"{col}{TR_CALC}"
+    tr[contrib] = f"={rev}-{cogs_r}-{var_r}"
+    tr[f"{col}{TR_CALC+1}"] = f'=IFERROR({contrib}/{rev},"")'
+    tr[f"{col}{TR_CALC+2}"] = f"={contrib}-{ads_r}-{fix_r}"
+    tr[f"{col}{TR_CALC+3}"] = f'=IFERROR({col}{TR_CALC+2}/{rev},"")'
+    if i == 0:
+        tr[f"{col}{TR_CALC+4}"] = f"={col}{TR_CALC+2}"
+        tr[f"{col}{TR_CALC+5}"] = ""
+    else:
+        tr[f"{col}{TR_CALC+4}"] = f"={prev}{TR_CALC+4}+{col}{TR_CALC+2}"
+        tr[f"{col}{TR_CALC+5}"] = f'=IFERROR({rev}/{prev}{TR_IN}-1,"")'
+
+style(tr, f"A{TR_CALC}:A{TR_CALC+5}", bold=True, size=10)
+money = '#,##0;(#,##0);-'
+for r in (TR_CALC, TR_CALC + 2, TR_CALC + 4):
+    style(tr, f"B{r}:M{r}", align="right", fmt=money, fill=BAND)
+for r in (TR_CALC + 1, TR_CALC + 3, TR_CALC + 5):
+    style(tr, f"B{r}:M{r}", align="right", fmt='0.0%', fill=LIGHT)
+
+# red when a month loses money
+tr.conditional_formatting.add(
+    f"B{TR_CALC+2}:M{TR_CALC+2}",
+    CellIsRule(operator="lessThan", formula=["0"],
+               font=Font(name=F, bold=True, color=RED)))
+
+TR_CH = TR_CALC + 8
+section(tr, TR_CH - 1, "REVENUE AND OPERATING PROFIT BY MONTH", span=13)
+lc = LineChart(); lc.style = 12
+lc.y_axis.title = "Amount"; lc.x_axis.title = "Month"
+lc.height, lc.width = 8.5, 26
+_data = Reference(tr, min_col=1, max_col=MON_LAST,
+                  min_row=TR_IN, max_row=TR_IN)
+_prof = Reference(tr, min_col=1, max_col=MON_LAST,
+                  min_row=TR_CALC + 2, max_row=TR_CALC + 2)
+lc.add_data(_data, titles_from_data=True, from_rows=True)
+lc.add_data(_prof, titles_from_data=True, from_rows=True)
+lc.set_categories(Reference(tr, min_col=MON_FIRST, max_col=MON_LAST,
+                            min_row=TR_HDR, max_row=TR_HDR))
+tr.add_chart(lc, f"A{TR_CH}")
+
+tr.cell(row=TR_CH + 18, column=1,
+        value="Read the direction, not the level. Three months of falling "
+              "contribution margin is a structural problem; one month is noise.")
+style(tr, f"A{TR_CH+18}:M{TR_CH+18}", size=9, italic=True, border=False)
+sigfooter(tr, TR_CH + 20, span=13)
+tr.column_dimensions["A"].width = 34
+for i in range(12):
+    tr.column_dimensions[get_column_letter(MON_FIRST + i)].width = 12
+tr.freeze_panes = "B5"
+
+# =====================================================================
 ref = wb.create_sheet("Ref")
 ref.sheet_view.showGridLines = False
 ref["A1"]="Code"; ref["B1"]="Symbol"; ref["C1"]="Name"; ref["D1"]="Decimals"
@@ -644,7 +732,7 @@ sg.sheet_view.showGridLines = False
 for k,v in {"A":26,"B":62}.items(): sg.column_dimensions[k].width=v
 banner(sg,1,"DIGITAL SIGNATURE  ·  DO NOT MODIFY",span=2)
 meta=[("Author",AUTHOR),("GitHub",GH),("Skill","entrepreneur-business-intelligence-cfo"),
-      ("Version","2.1.0"),("Signature ID",SIG),("License","MIT — attribution required"),
+      ("Version","2.2.0"),("Signature ID",SIG),("License","MIT — attribution required"),
       ("Default currency","BDT (all 34 supported)"),
       ("Notice","This workbook and its formula design are the work of "
                 "Md Kamrul Hasan. The MIT License permits reuse and modification "
@@ -668,7 +756,8 @@ sg.protection.enable()
 from openpyxl.worksheet.page import PageMargins
 PRINT_AREAS = {
     "1. Setup": "A1:H70", "2. Dashboard": "A1:H70",
-    "3. Scenarios": "A1:F35", "Ref": "A1:D36", "Signature": "A1:B14",
+    "3. Scenarios": "A1:F35", "4. Trend": "A1:M40",
+    "Ref": "A1:D36", "Signature": "A1:B14",
 }
 for _name, _rng in PRINT_AREAS.items():
     _ws = wb[_name]

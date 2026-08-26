@@ -23,6 +23,7 @@ A ratio is not an answer. The answer is what the founder should do Monday mornin
 5. Flag conflicts in the data; don't silently pick a side.
 6. One metric never produces a verdict.
 7. No legal or tax advice — jurisdiction-dependent.
+8. Before stating a profit, confirm the cost stack is complete: COGS + per-order variable costs + ad spend + fixed overhead. Name any missing bucket in the same sentence as the number. A profit from revenue, COGS and OpEx alone is not a profit.
 
 ## The eight confusions
 Revenue ≠ Profit · Profit ≠ Cash · ROAS ≠ ROI · EBITDA ≠ Cash flow · Revenue ≠ Cash received · Customer retention ≠ Revenue retention · Gross margin ≠ Contribution margin · Growth ≠ Good growth
@@ -33,7 +34,8 @@ Revenue ≠ Profit · Profit ≠ Cash · ROAS ≠ ROI · EBITDA ≠ Cash flow ·
 ```
 Net Revenue = Gross Revenue − returns/discounts
 Gross Profit = Net Revenue − COGS
-Operating Profit (EBIT) = Gross Profit − OpEx
+Contribution = Gross Profit − Variable Costs (shipping, gateway, commission, RTO)
+Operating Profit (EBIT) = Contribution − Ad Spend − Fixed OpEx
 Net Profit = EBIT − Interest − Tax
 Margin % = (that profit) / Net Revenue × 100
 EBITDA = EBIT + Depreciation + Amortization   [only if D&A sits in OpEx]
@@ -174,4 +176,4 @@ Good: "You pay ৳420 to acquire a customer worth ৳310 in gross profit. Every 
 Mirror the user's language — Bangla, Banglish, or English — keeping financial terms in English. Currencies: ৳ $ € £ ₹ ¥. Don't convert without a current rate; show rate and date if you do.
 
 ---
-Skill by Md Kamrul Hasan · github.com/Kamrul5242 · signature MKH-EBIC-2.1.0
+Skill by Md Kamrul Hasan · github.com/Kamrul5242 · signature MKH-EBIC-2.2.0

@@ -12,6 +12,9 @@ Usage:
                                 --adspend 240000 --opex 180000
     python3 cfo_calc.py unit --price 500 --varcost 347.5 --fixed 180000 \
                              --units 1700 --adspend 240000
+    python3 cfo_calc.py intake --file assets/business-data-intake-example.csv
+    python3 cfo_calc.py inventory --cogs 1800000 --avg-inventory 900000 \
+                                  --daily-demand 57 --lead-days 21 --demand-std 12
     python3 cfo_calc.py cashflow --net-profit 420000 --depreciation 35000 \
                                  --delta-ar 380000 --delta-inventory 250000 \
                                  --delta-ap 90000 --capex 120000 \
@@ -32,10 +35,13 @@ License: MIT
 """
 
 import argparse
+import csv
 import json
+import math
+import statistics
 import sys
 
-SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.1.0"
+SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.0"
 
 
 # ---------- helpers ----------
@@ -347,6 +353,369 @@ def loan(a):
     return out
 
 
+# ---------- intake ----------
+
+def _num(v):
+    """CSV cells arrive as text, blank, or with thousands separators."""
+    if v is None:
+        return None
+    t = str(v).strip().replace(",", "").replace("\u09f3", "").replace("$", "")
+    if t in ("", "-", "n/a", "N/A"):
+        return None
+    try:
+        return float(t)
+    except ValueError:
+        return None
+
+
+def _load_intake(path):
+    rows, meta = {}, {"currency": None, "period": None}
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        reader = csv.DictReader(fh)
+        if not reader.fieldnames or "section" not in reader.fieldnames:
+            raise ValueError(
+                "not an intake sheet: expected a 'section' column. Use "
+                "assets/business-data-intake-template.csv as the format.")
+        for r in reader:
+            sec = (r.get("section") or "").strip().upper()
+            item = (r.get("line_item") or "").strip().lower()
+            if not sec or sec == "SIGNATURE":
+                continue
+            val = _num(r.get("value"))
+            rows[(sec, item)] = val
+            if val is not None:
+                if not meta["currency"]:
+                    meta["currency"] = (r.get("currency") or "").strip() or None
+                if not meta["period"]:
+                    meta["period"] = (r.get("period") or "").strip() or None
+    return rows, meta
+
+
+def _row(rows, section, needle):
+    for (sec, item), val in rows.items():
+        if sec == section and needle in item:
+            return val
+    return None
+
+
+def _sec_sum(rows, section, exclude=()):
+    total, seen = 0.0, False
+    for (sec, item), val in rows.items():
+        if sec != section or val is None:
+            continue
+        if any(x in item for x in exclude):
+            continue
+        total += val
+        seen = True
+    return total if seen else None
+
+
+def intake(a):
+    """Read a filled intake sheet and run the whole chain in one call."""
+    rows, meta = _load_intake(a.file)
+    missing = []
+
+    def need(label, value):
+        if value is None:
+            missing.append(label)
+        return value or 0.0
+
+    gross = _row(rows, "INCOME", "gross revenue")
+    if gross is None:
+        return {"ERROR": "INCOME / Gross Revenue is empty. Nothing can be "
+                         "computed without it.", "file": a.file}
+
+    returns = (_row(rows, "INCOME", "returns") or 0) + (_row(rows, "INCOME", "discount") or 0)
+    cogs = _sec_sum(rows, "COGS") or 0.0
+    var = _sec_sum(rows, "VARIABLE") or 0.0
+    ads = _row(rows, "OPEX", "advertis") or 0.0
+    dna = _row(rows, "OPEX", "depreciation") or 0.0
+    opex = _sec_sum(rows, "OPEX", exclude=("advertis", "depreciation")) or 0.0
+    interest = _row(rows, "BELOW_LINE", "interest") or 0.0
+    tax = _row(rows, "BELOW_LINE", "tax") or 0.0
+
+    net_rev = gross - returns
+    gp = net_rev - cogs
+    contribution = gp - var
+    op = contribution - ads - opex - dna
+    net = op - interest - tax
+
+    pl = {
+        "gross_revenue": _r(gross),
+        "returns_and_discounts": _r(returns),
+        "net_revenue": _r(net_rev),
+        "cogs": _r(cogs),
+        "gross_profit": _r(gp),
+        "gross_margin_pct": _pct(_div(gp, net_rev)),
+        "variable_costs": _r(var),
+        "contribution": _r(contribution),
+        "contribution_margin_pct": _pct(_div(contribution, net_rev)),
+        "ad_spend": _r(ads),
+        "operating_expenses": _r(opex),
+        "depreciation_amortization": _r(dna),
+        "operating_profit": _r(op),
+        "operating_margin_pct": _pct(_div(op, net_rev)),
+        "net_profit": _r(net),
+        "net_margin_pct": _pct(_div(net, net_rev)),
+    }
+
+    out = {
+        "source_file": a.file,
+        "currency": meta["currency"] or "unknown",
+        "period": meta["period"] or "unknown",
+        "profit_and_loss": pl,
+    }
+
+    # ---- unit economics ----
+    orders = _row(rows, "UNITS", "number of orders") or _row(rows, "UNITS", "units sold")
+    if orders:
+        cm_per_order = _div(contribution, orders)
+        ue = {
+            "orders": orders,
+            "aov": _r(_div(net_rev, orders)),
+            "variable_cost_per_order": _r(_div(cogs + var, orders)),
+            "contribution_per_order": _r(cm_per_order),
+            "ad_cost_per_order": _r(_div(ads, orders)),
+            "contribution_after_ads_per_order": _r(
+                (cm_per_order or 0) - (_div(ads, orders) or 0)),
+            "fixed_cost_per_order": _r(_div(opex + dna, orders)),
+        }
+        cmr = _div(contribution, net_rev)
+        if cmr and cmr > 0:
+            ue["break_even_roas"] = _r(_div(1, cmr))
+            ue["break_even_units_incl_ad_spend"] = _r(
+                _div(opex + dna + ads, cm_per_order), 1)
+        out["unit_economics"] = ue
+        new_cust = _row(rows, "UNITS", "new customers")
+        if new_cust:
+            out["acquisition"] = {
+                "new_customers": new_cust,
+                "cac": _r(_div(ads, new_cust)),
+                "contribution_per_order": _r(cm_per_order),
+                "cac_note": "Paid CAC: ad spend / new customers. Not fully loaded.",
+            }
+    else:
+        missing.append("UNITS / Number of Orders (unit economics skipped)")
+
+    # ---- marketing ----
+    attributed = _row(rows, "MARKETING", "ad-attributed")
+    if attributed and ads:
+        out["marketing"] = {
+            "attributed_revenue": _r(attributed),
+            "reported_roas": _r(_div(attributed, ads)),
+            "blended_mer": _r(_div(net_rev, ads)),
+        }
+
+    # ---- cash ----
+    opening = _row(rows, "CASH", "opening cash")
+    closing = _row(rows, "CASH", "closing cash")
+    capex = _row(rows, "CASH", "capital expenditure") or 0.0
+    principal = _row(rows, "CASH", "principal repaid") or 0.0
+    draw = _row(rows, "CASH", "drawings") or 0.0
+    loan_in = _row(rows, "CASH", "loan received") or 0.0
+    inv_in = _row(rows, "CASH", "investment received") or 0.0
+    if opening is not None:
+        implied = opening + op + dna - interest - tax + loan_in + inv_in - capex - principal - draw
+        cash = {
+            "opening_cash": _r(opening),
+            "operating_profit": _r(op),
+            "add_back_depreciation": _r(dna),
+            "financing_in": _r(loan_in + inv_in),
+            "less_capex": _r(capex),
+            "less_loan_principal": _r(principal),
+            "less_owner_drawings": _r(draw),
+            "implied_closing_cash": _r(implied),
+        }
+        if closing is not None:
+            gap = closing - implied
+            cash["stated_closing_cash"] = _r(closing)
+            cash["unexplained_gap"] = _r(gap)
+            cash["gap_reading"] = (
+                "Reconciles." if abs(gap) < 1 else
+                "Does not reconcile. The difference is working-capital movement "
+                "(receivables, inventory, payables) or a missing line. Run "
+                "`cashflow` with the balance-sheet changes to locate it.")
+        out["cash"] = cash
+
+    # ---- working capital ----
+    ar = _row(rows, "BALANCE", "receivable")
+    inv = _row(rows, "BALANCE", "inventory")
+    ap = _row(rows, "BALANCE", "payable")
+    if None not in (ar, inv, ap) and cogs and net_rev:
+        days = a.days
+        dio = _div(inv, cogs) * days
+        dso = _div(ar, net_rev) * days
+        dpo = _div(ap, cogs) * days
+        out["working_capital"] = {
+            "days_in_period": days,
+            "DIO_days": _r(dio, 1),
+            "DSO_days": _r(dso, 1),
+            "DPO_days": _r(dpo, 1),
+            "cash_conversion_cycle_days": _r(dio + dso - dpo, 1),
+        }
+
+    # ---- balance sheet tie-out ----
+    assets = _sec_sum(rows, "BALANCE", exclude=("payable", "debt", "equity"))
+    liabilities = (_row(rows, "BALANCE", "payable") or 0) + \
+                  (_row(rows, "BALANCE", "short-term debt") or 0) + \
+                  (_row(rows, "BALANCE", "long-term debt") or 0)
+    equity = _row(rows, "BALANCE", "equity")
+    if assets is not None and equity is not None:
+        diff = assets - (liabilities + equity)
+        out["balance_sheet_check"] = {
+            "assets": _r(assets),
+            "liabilities": _r(liabilities),
+            "equity": _r(equity),
+            "difference": _r(diff),
+            "reading": ("Balances." if abs(diff) < 1 else
+                        "Does NOT balance. Assets minus liabilities and equity "
+                        "leaves a gap — one of the three is wrong."),
+        }
+
+    # ---- concentration ----
+    big_cust = _row(rows, "CONCENTRATION", "largest customer")
+    if big_cust and net_rev:
+        share = _div(big_cust, net_rev)
+        out["concentration"] = {
+            "largest_customer_share_pct": _pct(share),
+            "flag": "ABOVE 20% — customer concentration risk" if share > 0.20
+                    else "below the 20% flag",
+        }
+
+    # ---- the five answers SKILL.md section 5 requires ----
+    runway_m = None
+    if opening is not None and op < 0:
+        runway_m = _div(opening, -op)
+    cm_per_order_after_ads = None
+    if orders:
+        cm_per_order_after_ads = (_div(contribution, orders) or 0) - (_div(ads, orders) or 0)
+
+    if contribution <= 0:
+        problem = ("Unit economics. Contribution is not positive before ads — "
+                   "every order loses money and volume makes it worse.")
+    elif cm_per_order_after_ads is not None and cm_per_order_after_ads <= 0:
+        problem = ("Ad efficiency. Contribution after ad cost is not positive, "
+                   "so paid growth destroys value at this ROAS.")
+    elif op < 0:
+        problem = ("Fixed costs. Orders contribute after ads, but overhead of "
+                   "{:,.0f} is larger than the {:,.0f} they produce."
+                   .format(opex + dna, contribution - ads))
+    elif runway_m is not None and runway_m < 3:
+        problem = "Cash. Under three months of runway at the current burn."
+    else:
+        problem = "No structural loss detected in this period's numbers."
+
+    out["minimum_viable_answer"] = {
+        "profitable": "NO — operating loss" if op < 0 else "yes, at operating level",
+        "operating_profit": _r(op),
+        "does_one_unit_make_money": (
+            "not computable without orders" if cm_per_order_after_ads is None
+            else ("yes, {:,.2f} per order after ads".format(cm_per_order_after_ads)
+                  if cm_per_order_after_ads > 0
+                  else "NO, {:,.2f} per order after ads".format(cm_per_order_after_ads))),
+        "runway_months": _r(runway_m),
+        "biggest_problem": problem,
+    }
+
+    if missing:
+        out["missing_inputs"] = missing
+    out["note"] = ("Every figure derives from the sheet; nothing is assumed. "
+                   "Blank rows are treated as zero and listed in missing_inputs "
+                   "when they change the answer.")
+    return out
+
+
+
+def inventory(a):
+    """Stock efficiency and reordering. Formulas per 05-ecommerce-and-inventory.md."""
+    out = {}
+    used = False
+
+    if a.avg_inventory:
+        out["average_inventory_at_cost"] = _r(a.avg_inventory)
+        out["cash_tied_in_stock"] = _r(a.avg_inventory)
+        if a.cogs:
+            turns = _div(a.cogs, a.avg_inventory)
+            out["inventory_turnover"] = _r(turns)
+            out["days_of_stock"] = _r(_div(a.days, turns), 1)
+            out["turnover_note"] = (
+                "Turnover is per the period given by --days ({} days). "
+                "Annualise before comparing to a yearly benchmark."
+                .format(a.days))
+            used = True
+        if a.gross_profit:
+            out["gmroi"] = _r(_div(a.gross_profit, a.avg_inventory))
+            out["gmroi_note"] = ("Gross profit per unit of stock cost. Below 1.0 "
+                                 "means the stock earns less than it costs to hold.")
+            used = True
+
+    if a.units_sold and a.units_received:
+        out["sell_through_pct"] = _pct(_div(a.units_sold, a.units_received))
+        used = True
+
+    if a.dead_units and a.landed_cost:
+        out["dead_stock_value"] = _r(a.dead_units * a.landed_cost)
+        out["dead_stock_note"] = ("Zero-movement units at landed cost. This is "
+                                  "cash already spent that no longer converts.")
+        used = True
+
+    # ---- reordering ----
+    if a.daily_demand and a.lead_days:
+        z = None
+        if a.demand_std:
+            try:
+                z = statistics.NormalDist().inv_cdf(a.service_level)
+            except Exception:
+                z = None
+        if z is not None:
+            safety = z * a.demand_std * math.sqrt(a.lead_days)
+        elif a.peak_daily_demand:
+            safety = (a.peak_daily_demand - a.daily_demand) * a.lead_days
+        else:
+            safety = 0.0
+        rop = a.daily_demand * a.lead_days + safety
+        out["daily_demand_units"] = _r(a.daily_demand)
+        out["lead_time_days"] = _r(a.lead_days)
+        out["demand_during_lead_time"] = _r(a.daily_demand * a.lead_days, 1)
+        out["safety_stock_units"] = _r(safety, 1)
+        out["reorder_point_units"] = _r(rop, 1)
+        out["safety_stock_basis"] = (
+            "service level {:.0%}, z={:.2f}, sigma={:g}/day".format(
+                a.service_level, z, a.demand_std) if z is not None
+            else ("peak minus average demand over lead time"
+                  if a.peak_daily_demand else
+                  "ZERO — no --demand-std or --peak-daily-demand given, so this "
+                  "reorder point carries no buffer against demand variability"))
+        if a.stock_on_hand is not None:
+            out["stock_on_hand"] = _r(a.stock_on_hand)
+            out["reorder_now"] = a.stock_on_hand <= rop
+            out["days_until_reorder_point"] = _r(
+                _div(a.stock_on_hand - rop, a.daily_demand), 1)
+        used = True
+
+    if a.annual_demand and a.order_cost and a.holding_cost:
+        eoq = math.sqrt(2 * a.annual_demand * a.order_cost / a.holding_cost)
+        out["economic_order_quantity"] = _r(eoq, 1)
+        out["orders_per_year"] = _r(_div(a.annual_demand, eoq), 1)
+        out["eoq_note"] = ("EOQ assumes steady demand and a fixed order cost. "
+                           "Treat it as a starting quantity, not a rule.")
+        used = True
+
+    if a.stockout_days and a.daily_demand and a.contribution_per_unit:
+        lost = a.stockout_days * a.daily_demand * a.contribution_per_unit
+        out["stockout_days"] = _r(a.stockout_days)
+        out["contribution_lost_to_stockouts"] = _r(lost)
+        used = True
+
+    if not used:
+        return {"ERROR": "Nothing to compute. Supply at least one group: "
+                         "--cogs with --avg-inventory, --units-sold with "
+                         "--units-received, --daily-demand with --lead-days, "
+                         "or --annual-demand with --order-cost and --holding-cost."}
+    return out
+
+
+
 def cashflow(a):
     """Indirect-method cash flow: why profit and bank balance disagree."""
     dna = (a.depreciation or 0) + (a.amortization or 0)
@@ -447,6 +816,8 @@ COMMANDS = {
     "npv": "NPV, IRR, payback for an investment",
     "loan": "EMI, total interest, DSCR",
     "cashflow": "Operating/investing/financing cash flow, profit-to-cash gap",
+    "intake": "Read a filled intake CSV and run the whole chain in one call",
+    "inventory": "Turnover, sell-through, GMROI, reorder point, EOQ, stockout cost",
     "dilution": "Post-money, investor %, founder dilution",
     "price-test": "Break-even volume loss for a price change",
 }
@@ -534,6 +905,37 @@ def build_parser():
     l.add_argument("--months", type=int, required=True)
     l.add_argument("--monthly-ocf", type=float, dest="monthly_ocf")
 
+    ik = sub.add_parser("intake", help=_h("intake"))
+    ik.add_argument("--file", "-f", required=True,
+                    help="a filled copy of assets/business-data-intake-template.csv")
+    ik.add_argument("--days", type=int, default=30,
+                    help="days in the period, for DIO/DSO/DPO")
+
+    iv = sub.add_parser("inventory", help=_h("inventory"))
+    iv.add_argument("--cogs", type=float)
+    iv.add_argument("--avg-inventory", type=float, dest="avg_inventory")
+    iv.add_argument("--gross-profit", type=float, dest="gross_profit")
+    iv.add_argument("--days", type=int, default=365,
+                    help="days the --cogs figure covers (default 365)")
+    iv.add_argument("--units-sold", type=float, dest="units_sold")
+    iv.add_argument("--units-received", type=float, dest="units_received")
+    iv.add_argument("--dead-units", type=float, dest="dead_units")
+    iv.add_argument("--landed-cost", type=float, dest="landed_cost")
+    iv.add_argument("--daily-demand", type=float, dest="daily_demand")
+    iv.add_argument("--peak-daily-demand", type=float, dest="peak_daily_demand")
+    iv.add_argument("--demand-std", type=float, dest="demand_std",
+                    help="standard deviation of daily demand, in units")
+    iv.add_argument("--service-level", type=float, dest="service_level",
+                    default=0.95, help="decimal, e.g. 0.95 (default)")
+    iv.add_argument("--lead-days", type=float, dest="lead_days")
+    iv.add_argument("--stock-on-hand", type=float, dest="stock_on_hand")
+    iv.add_argument("--annual-demand", type=float, dest="annual_demand")
+    iv.add_argument("--order-cost", type=float, dest="order_cost")
+    iv.add_argument("--holding-cost", type=float, dest="holding_cost",
+                    help="cost to hold one unit for a year")
+    iv.add_argument("--stockout-days", type=float, dest="stockout_days")
+    iv.add_argument("--contribution-per-unit", type=float, dest="contribution_per_unit")
+
     cf = sub.add_parser("cashflow", help=_h("cashflow"))
     cf.add_argument("--net-profit", type=float, dest="net_profit", required=True)
     cf.add_argument("--depreciation", type=float, default=0)
@@ -571,7 +973,7 @@ def build_parser():
 DISPATCH = {
     "margins": margins, "unit": unit, "cac": cac, "roas": roas,
     "runway": runway, "ccc": ccc, "npv": npv, "loan": loan,
-    "cashflow": cashflow,
+    "cashflow": cashflow, "intake": intake, "inventory": inventory,
     "dilution": dilution, "price-test": price_test,
 }
 

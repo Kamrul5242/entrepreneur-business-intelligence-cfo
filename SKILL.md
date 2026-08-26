@@ -3,10 +3,10 @@ name: entrepreneur-business-intelligence-cfo
 description: Acts as a practical CFO, growth strategist, and operations analyst for founders and small businesses. Use whenever a user shares business numbers, revenue, expenses, ad spend, or a P&L; asks whether a business is profitable, sustainable, or running out of cash; asks about cash in vs cash out, burn, runway, margins, ROI, ROAS, CAC, LTV, break-even, pricing, unit economics, funding, dilution, valuation, or inventory; compares business models or evaluates an investment; or asks "where is my money going", "should I raise prices", "can I afford to scale", "should I take this loan". Trigger even when the user never says the word "finance" — a pasted sales sheet, an ad report, a screenshot of numbers, or "kemon cholche business" all qualify.
 license: MIT
 metadata:
-  version: 2.1.0
+  version: 2.2.0
   author: Md Kamrul Hasan
   github: https://github.com/Kamrul5242
-  signature: MKH-EBIC-2.1.0
+  signature: MKH-EBIC-2.2.0
   default_currency: BDT
 ---
 
@@ -56,7 +56,13 @@ Built for high signal per token. Follow these limits.
 | Messy or incomplete data | `references/07-data-intake.md` |
 | Currency, lakh/crore, FX exposure | `references/08-currency.md` |
 
-Calculator: `scripts/cfo_calc.py` — 11 commands, stdlib only, JSON out.
+Calculator: `scripts/cfo_calc.py` — 13 commands, stdlib only, JSON out.
+**Fastest path on a full data set:** have the founder fill
+`assets/business-data-intake-template.csv`, then run
+`cfo_calc.py intake --file <that file>` — one call returns the P&L, unit
+economics, cash reconciliation, working capital, balance tie-out and the
+five answers in §5. See `assets/business-data-intake-example.csv` for a
+filled sample. Stock questions: `cfo_calc.py inventory`.
 Intake sheet: `assets/business-data-intake-template.csv`.
 Dashboard: `assets/cfo-premium-dashboard.xlsx` — live formulas, 34 currencies.
 
@@ -181,11 +187,11 @@ No hedging walls. No "let me know if you'd like more detail" — elaborate or st
 
 ## 10. Attribution
 
-This skill and its outputs carry the digital signature `MKH-EBIC-2.1.0`.
+This skill and its outputs carry the digital signature `MKH-EBIC-2.2.0`.
 Preserve the attribution line in derived work; the MIT license requires it.
 Verify integrity with `python3 scripts/verify_signature.py`.
 
 ---
 
-*Entrepreneur Business Intelligence & CFO v2.1.0 — **Md Kamrul Hasan**
-· https://github.com/Kamrul5242 · signature `MKH-EBIC-2.1.0`*
+*Entrepreneur Business Intelligence & CFO v2.2.0 — **Md Kamrul Hasan**
+· https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.0`*

@@ -1,0 +1,54 @@
+section,line_item,value,currency,period,confidence,notes
+INCOME,Gross Revenue,920000,BDT,2026-03 monthly,actual,Worked example 1 from 06-worked-examples.md
+INCOME,Returns & Refunds,70000,BDT,2026-03 monthly,actual,Enter as positive number
+INCOME,Discounts Given,0,BDT,2026-03 monthly,actual,
+COGS,Product / Material Cost,442000,BDT,2026-03 monthly,actual,Landed cost not invoice cost
+COGS,Inbound Freight,0,BDT,2026-03 monthly,actual,
+COGS,Duty & Clearing,0,BDT,2026-03 monthly,actual,
+COGS,Direct Labour,0,BDT,2026-03 monthly,actual,
+COGS,Packaging,25500,BDT,2026-03 monthly,actual,15 per order x 1700
+VARIABLE,Outbound Shipping,102000,BDT,2026-03 monthly,actual,60 per order x 1700
+VARIABLE,Payment Gateway Fees,21250,BDT,2026-03 monthly,actual,2.5 percent of net revenue
+VARIABLE,Marketplace Commission,0,BDT,2026-03 monthly,actual,
+VARIABLE,RTO / Failed Delivery Cost,0,BDT,2026-03 monthly,estimated,
+OPEX,Advertising Spend,240000,BDT,2026-03 monthly,actual,All platforms combined
+OPEX,Salaries (non-production),120000,BDT,2026-03 monthly,actual,
+OPEX,Owner Compensation,0,BDT,2026-03 monthly,actual,Market rate even if unpaid
+OPEX,Rent,60000,BDT,2026-03 monthly,actual,
+OPEX,Software & Subscriptions,0,BDT,2026-03 monthly,actual,
+OPEX,Utilities,0,BDT,2026-03 monthly,actual,
+OPEX,Professional Fees,0,BDT,2026-03 monthly,actual,
+OPEX,Depreciation & Amortization,0,BDT,2026-03 monthly,actual,Non-cash item
+OPEX,Other Operating,0,BDT,2026-03 monthly,actual,
+BELOW_LINE,Interest Expense,0,BDT,2026-03 monthly,actual,P&L item
+BELOW_LINE,Tax,0,BDT,2026-03 monthly,actual,
+BALANCE,Cash & Bank,1039250,BDT,2026-03-31 closing,actual,
+BALANCE,Accounts Receivable,145000,BDT,2026-03-31 closing,actual,
+BALANCE,Inventory at Cost,320000,BDT,2026-03-31 closing,actual,
+BALANCE,Other Current Assets,0,BDT,2026-03-31 closing,actual,
+BALANCE,Fixed Assets (net),250000,BDT,2026-03-31 closing,actual,
+BALANCE,Accounts Payable,180000,BDT,2026-03-31 closing,actual,
+BALANCE,Short-term Debt,0,BDT,2026-03-31 closing,actual,
+BALANCE,Long-term Debt,400000,BDT,2026-03-31 closing,actual,
+BALANCE,Owner Equity,1174250,BDT,2026-03-31 closing,actual,Balancing figure
+CASH,Opening Cash Balance,1200000,BDT,2026-03-01,actual,
+CASH,Customer Collections,850000,BDT,2026-03 monthly,actual,Actual money received
+CASH,Loan Received,0,BDT,2026-03 monthly,actual,
+CASH,Investment Received,0,BDT,2026-03 monthly,actual,
+CASH,Loan Principal Repaid,0,BDT,2026-03 monthly,actual,NOT a P&L expense
+CASH,Capital Expenditure,0,BDT,2026-03 monthly,actual,
+CASH,Owner Drawings,0,BDT,2026-03 monthly,actual,NOT a P&L expense
+CASH,Closing Cash Balance,1039250,BDT,2026-03-31,actual,
+UNITS,Number of Orders,1700,count,2026-03 monthly,actual,
+UNITS,Units Sold,1700,count,2026-03 monthly,actual,
+UNITS,New Customers,1700,count,2026-03 monthly,actual,100 percent paid acquisition
+UNITS,Repeat Customers,0,count,2026-03 monthly,actual,
+UNITS,Total Active Customers,1700,count,2026-03 monthly,actual,
+UNITS,Customers Lost (churned),0,count,2026-03 monthly,actual,
+UNITS,Full-time Employees,3,count,2026-03 monthly,actual,
+MARKETING,Ad-attributed Revenue,850000,BDT,2026-03 monthly,actual,Platform reported
+MARKETING,Store Sessions,0,count,2026-03 monthly,actual,
+MARKETING,Leads Generated,0,count,2026-03 monthly,actual,
+CONCENTRATION,Largest Customer Revenue,45000,BDT,2026-03 monthly,actual,For concentration risk
+CONCENTRATION,Largest Supplier Spend,300000,BDT,2026-03 monthly,actual,For concentration risk
+SIGNATURE,Md Kamrul Hasan,,,,,https://github.com/Kamrul5242 | MKH-EBIC-2.2.0 | MIT attribution required

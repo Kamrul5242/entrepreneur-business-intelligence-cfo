@@ -1,6 +1,42 @@
 # Changelog
 
-## Unreleased
+## 2.2.0 — 2026-08-27
+
+### Added — the intake sheet is now executable
+- New `intake` command: `cfo_calc.py intake --file <filled-template>.csv`
+  reads the intake sheet and runs the whole chain in one call — P&L, unit
+  economics, acquisition, marketing, cash reconciliation, working capital,
+  balance-sheet tie-out, concentration, and the five answers required by
+  `SKILL.md` §5. Previously the sheet's eleven sections had to be hand-mapped
+  onto two calculator flags, which is how a −৳160,750 loss got reported as a
+  +৳228,000 profit.
+- New `assets/business-data-intake-example.csv` — the `06-worked-examples.md`
+  business filled in. `intake` on it reproduces the hand-written analysis
+  exactly, including the verdict that fixed costs, not ad efficiency, are the
+  binding problem.
+- New `inventory` command: turnover, days of stock, sell-through, GMROI, dead
+  stock, safety stock, reorder point, EOQ and contribution lost to stockouts.
+  `05-ecommerce-and-inventory.md` §7 listed these; nothing computed them.
+  Safety stock states its own basis, and says so plainly when it is zero
+  because no variability input was given.
+- New sheet **4. Trend** in the workbook — twelve months side by side with
+  contribution, operating profit, cumulative profit and month-on-month
+  revenue growth, plus a revenue-vs-profit line chart. The workbook was a
+  single-month snapshot, which cannot answer "is this getting better".
+  Workbook formula count rises from 90 to 161.
+- New `requirements.txt` pinning `openpyxl==3.1.5`. The calculator and its
+  tests remain standard-library only; the pin exists because openpyxl changes
+  the archive layout between releases, which changes the workbook's SHA-256
+  and breaks the manifest match even when the content is identical.
+
+### Changed
+- Version and signature ID moved together to `MKH-EBIC-2.2.0`. The ID embeds
+  the version, so leaving it at 2.1.0 would misstate provenance.
+- `platforms/system-prompt.txt` and `platforms/gemini-gem-instructions.md`
+  are no longer byte-identical copies of `universal-compact-core.md`; each is
+  now written for its own target format.
+
+### Fixed in this release
 
 ### Fixed — `scripts/cfo_calc.py`
 - **Every command crashed on Python 3.13+.** A bare `%` in the `dilution` help

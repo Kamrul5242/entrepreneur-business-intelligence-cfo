@@ -1,0 +1,17 @@
+# scripts/cfo_calc.py and scripts/test_cfo_calc.py need NOTHING from
+# this file - they are standard library only, by design.
+#
+# openpyxl is required only to build or verify the Excel workbook:
+#   scripts/build_dashboard.py   writes assets/cfo-premium-dashboard.xlsx
+#   scripts/verify_signature.py  reads its document properties
+#
+# The version is pinned because openpyxl changes the archive layout
+# between releases (comment part naming, shared strings), which changes
+# the workbook's SHA-256 and breaks the SIGNATURE.json match even when
+# the content is identical.
+#
+#   python3 -m pip install -r requirements.txt
+
+openpyxl==3.1.5
+
+# Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.0

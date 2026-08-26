@@ -7,10 +7,10 @@
 *Works on Claude, ChatGPT, Gemini, Cursor, Windsurf, GitHub Copilot, and any agent that reads `AGENTS.md`.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
-[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.1.0-C9A227.svg)](SIGNATURE.json)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
+[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.0-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
-[![Formulas](https://img.shields.io/badge/dashboard-90%20live%20formulas%2C%200%20errors-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
+[![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
 **Author: [Md Kamrul Hasan](https://github.com/Kamrul5242)**
 
@@ -42,7 +42,8 @@ math with real formulas instead of prose.
 
 ![Executive Dashboard](docs/screenshots/02-dashboard.png)
 
-*90 formulas, 0 recalculation errors. The verdict banner is itself a formula —
+*161 formulas across 6 sheets, zero hardcoded results. The verdict banner is
+itself a formula —
 it names the **root cause** (broken unit economics vs. overhead drag vs.
 healthy), not just "profit is negative."*
 
@@ -59,6 +60,10 @@ every symbol in the workbook updates.*
 
 *Edit the yellow drivers, watch all three columns and the price-sensitivity
 table recalculate. No copy-pasted "what-if" columns to keep in sync.*
+
+> **Note:** these screenshots were captured from the v2.1.0 workbook (5 sheets,
+> 90 formulas). The layout they show is unchanged, but v2.2.0 adds a sixth
+> sheet, **4. Trend**, which does not appear in them.
 
 <details>
 <summary><strong>More screenshots — currency reference & signature sheet</strong></summary>
@@ -78,7 +83,7 @@ table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 | Arithmetic | Model does it in its head | Offloaded to a tested Python calculator |
 | Verdict | "Looks concerning" | Names the exact root cause, in ৳/$/€, with the formula shown |
 | Currency | Assumes USD | **BDT default**, 34 currencies, lakh/crore aware |
-| Excel | None | 90-formula live dashboard, zero hardcoded numbers |
+| Excel | None | 161-formula live dashboard, 12-month trend, zero hardcoded numbers |
 | Portability | One platform | Claude, GPT, Gemini, Cursor, Copilot, AGENTS.md, raw system prompt |
 | Token cost | Loads everything | Router loads 1–3 files on demand — **~75% smaller** always-on core |
 | Provenance | None | SHA-256 signed manifest, tamper-detectable |
@@ -110,7 +115,7 @@ cp -r entrepreneur-business-intelligence-cfo \
 ```
 Configure → Instructions →
 paste platforms/universal-compact-core.md
-(7,523 chars — fits the 8,000 cap)
+(7,867 chars — fits the 8,000 cap)
 ```
 
 </td><td width="50%">
@@ -178,6 +183,9 @@ python3 scripts/cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.33
 
 # regression tests — asserts the calculator agrees with 06-worked-examples.md
 python3 scripts/test_cfo_calc.py
+
+# one command for the whole picture: fill the CSV, then
+python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.csv
 ```
 
 | Sheet | What's on it |
@@ -185,6 +193,7 @@ python3 scripts/test_cfo_calc.py
 | **1. Setup** | Every input, yellow-only, 34-currency dropdown |
 | **2. Dashboard** | KPI cards w/ RED-GREEN status · unit economics · cash & runway · liquidity & cash cycle · break-even · auto-diagnosing verdict · profit chart |
 | **3. Scenarios** | Conservative/Base/Aggressive with editable drivers + price-sensitivity table |
+| **4. Trend** | 12 months side by side — contribution, operating profit, cumulative profit, MoM growth, revenue-vs-profit chart |
 | **Ref** | 34-currency master table |
 | **Signature** | Locked, password-protected provenance record |
 
@@ -233,7 +242,7 @@ a report. Full details in [`SKILL.md §1`](SKILL.md).
 
 ## Digital signature
 
-Signature ID **`MKH-EBIC-2.1.0`**, embedded in 9 independent locations across
+Signature ID **`MKH-EBIC-2.2.0`**, embedded in 9 independent locations across
 the repo, plus a SHA-256 manifest of every file.
 
 ```bash
@@ -276,17 +285,20 @@ entrepreneur-business-intelligence-cfo/
 │   ├── 07-data-intake.md             Messy / incomplete data handling
 │   └── 08-currency.md                34 currencies, BDT default, lakh/crore
 ├── scripts/
-│   ├── cfo_calc.py                   11-command calculator, stdlib only
+│   ├── cfo_calc.py                   13-command calculator, stdlib only
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
 │   ├── verify_signature.py           Integrity + attribution checker
 │   └── test_cfo_calc.py              20 regression tests, stdlib unittest
 ├── assets/
-│   ├── cfo-premium-dashboard.xlsx    Live 5-sheet dashboard, 90 formulas
-│   └── business-data-intake-template.csv
+│   ├── cfo-premium-dashboard.xlsx    Live 6-sheet dashboard, 161 formulas
+│   ├── business-data-intake-template.csv   Blank — fill this in
+│   └── business-data-intake-example.csv    Worked example 1, filled
+├── requirements.txt                  openpyxl pin (workbook only; the
+│                                     calculator is stdlib-only)
 └── platforms/                        The core instructions, per-tool
-    ├── universal-compact-core.md     7.5 KB — fits any instruction box
-    ├── system-prompt.txt             same text, plain-prompt filename
-    ├── gemini-gem-instructions.md    same text, Gemini Gem filename
+    ├── universal-compact-core.md     Markdown, 7.9 KB — fits an 8 K box
+    ├── system-prompt.txt             Plain text, no markup — raw system prompt
+    ├── gemini-gem-instructions.md    Gemini Gem Persona/Task/Context/Format
     ├── cursor-rule.mdc               + Cursor rule frontmatter
     ├── windsurf-rules.md             + Windsurf rules format
     ├── copilot-instructions.md       + Copilot instructions format
@@ -305,6 +317,6 @@ in copies and substantial portions.
 <div align="center">
 
 **Md Kamrul Hasan** · [github.com/Kamrul5242](https://github.com/Kamrul5242) ·
-signature `MKH-EBIC-2.1.0`
+signature `MKH-EBIC-2.2.0`
 
 </div>
