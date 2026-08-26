@@ -8,8 +8,14 @@ Standard library only. No installs. Python 3.8+.
 Usage:
     python3 cfo_calc.py <command> [--flags]
     python3 cfo_calc.py list
-    python3 cfo_calc.py margins --revenue 850000 --cogs 442000 --opex 180000
-    python3 cfo_calc.py unit --price 500 --varcost 347 --fixed 180000
+    python3 cfo_calc.py margins --revenue 850000 --cogs 442000 --variable 148750 \
+                                --adspend 240000 --opex 180000
+    python3 cfo_calc.py unit --price 500 --varcost 347.5 --fixed 180000 \
+                             --units 1700 --adspend 240000
+    python3 cfo_calc.py cashflow --net-profit 420000 --depreciation 35000 \
+                                 --delta-ar 380000 --delta-inventory 250000 \
+                                 --delta-ap 90000 --capex 120000 \
+                                 --loan-principal 150000 --drawings 200000
     python3 cfo_calc.py cac --spend 240000 --customers 1700 --ltv 900
     python3 cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.305
     python3 cfo_calc.py runway --cash 1200000 --burn 160750
@@ -61,17 +67,27 @@ def _flows(s):
 def margins(a):
     net_rev = a.revenue - (a.returns or 0)
     gp = net_rev - a.cogs
-    op = gp - (a.opex or 0)
+    var = a.variable or 0
+    ads = a.adspend or 0
+    # Contribution sits between gross profit and operating profit: it is what
+    # remains after every cost that scales with an order, before ads and
+    # before fixed overhead.
+    contribution = gp - var
+    op = contribution - ads - (a.opex or 0)
     ebitda = op + (a.depreciation or 0) + (a.amortization or 0)
     ebt = op - (a.interest or 0)
     net = ebt - (a.tax or 0)
-    return {
+    out = {
         "gross_revenue": _r(a.revenue),
         "returns": _r(a.returns or 0),
         "net_revenue": _r(net_rev),
         "cogs": _r(a.cogs),
         "gross_profit": _r(gp),
         "gross_margin_pct": _pct(_div(gp, net_rev)),
+        "variable_costs": _r(var),
+        "contribution_after_variable": _r(contribution),
+        "contribution_margin_pct": _pct(_div(contribution, net_rev)),
+        "ad_spend": _r(ads),
         "operating_expenses": _r(a.opex or 0),
         "operating_profit_ebit": _r(op),
         "operating_margin_pct": _pct(_div(op, net_rev)),
@@ -82,6 +98,16 @@ def margins(a):
         "net_margin_pct": _pct(_div(net, net_rev)),
         "note": "All margins use NET revenue as denominator.",
     }
+    # `is None` not falsiness: 0 is a real answer, absence is not.
+    omitted = [name for name, val in
+               (("--variable (shipping, gateway, commission, RTO)", a.variable),
+                ("--adspend", a.adspend)) if val is None]
+    if omitted:
+        out["WARNING"] = (
+            "No value given for: " + "; ".join(omitted) +
+            ". If this business has those costs, every profit line above is "
+            "overstated. Ad spend belongs in --adspend, not --opex.")
+    return out
 
 
 def unit(a):
@@ -100,13 +126,34 @@ def unit(a):
         "break_even_revenue": _r(bep_rev),
         "break_even_roas": _r(_div(1, cm_ratio)) if cm > 0 else None,
     }
+    ads = getattr(a, "adspend", None) or 0
+    bep_incl = None
+    if ads:
+        out["ad_spend"] = _r(ads)
+        if cm > 0:
+            # Ads are a period cost here, so they raise the bar the same way
+            # fixed cost does. Break-even without them invents a safety margin.
+            bep_incl = _div((a.fixed or 0) + ads, cm)
+            out["break_even_units_incl_ad_spend"] = (
+                None if bep_incl is None else round(bep_incl, 1))
     if a.units:
         total_cm = cm * a.units
         out["units"] = a.units
-        out["total_contribution"] = _r(total_cm)
-        out["operating_profit"] = _r(total_cm - (a.fixed or 0))
-        if bep_units:
-            out["margin_of_safety_pct"] = _pct(_div(a.units - bep_units, a.units))
+        out["total_contribution_before_ads"] = _r(total_cm)
+        if ads:
+            out["ad_cost_per_unit"] = _r(_div(ads, a.units))
+            out["cm_per_unit_after_ads"] = _r(cm - (_div(ads, a.units) or 0))
+            out["total_contribution_after_ads"] = _r(total_cm - ads)
+            out["operating_profit"] = _r(total_cm - ads - (a.fixed or 0))
+        else:
+            # Naming the omission is the whole point: this number is not profit.
+            out["operating_profit_before_ad_spend"] = _r(total_cm - (a.fixed or 0))
+        gate = bep_incl if bep_incl is not None else bep_units
+        if gate:
+            out["margin_of_safety_pct"] = _pct(_div(a.units - gate, a.units))
+            out["margin_of_safety_basis"] = (
+                "break-even including ad spend" if bep_incl is not None
+                else "break-even excluding ad spend — pass --adspend for the real figure")
     if a.target_profit:
         need = _div((a.fixed or 0) + a.target_profit, cm) if cm > 0 else None
         out["units_for_target_profit"] = (
@@ -155,13 +202,16 @@ def roas(a):
         if r is None or be is None:
             out["verdict"] = "not computable — need both ROAS and CM ratio"
         elif r > be:
-            out["verdict"] = "PROFITABLE on ads"
+            out["verdict"] = "PROFITABLE on ads (before fixed costs)"
         elif r == be:
             out["verdict"] = "BREAK-EVEN on ads — no contribution after ad cost"
         else:
             out["verdict"] = "LOSING MONEY on ads at this ROAS"
         contribution = a.revenue * a.cm_ratio - a.spend
         out["contribution_after_ads"] = _r(contribution)
+        out["contribution_note"] = (
+            "This is contribution AFTER ad spend but BEFORE fixed costs. "
+            "Subtract rent, salaries and other overhead before calling it profit.")
     if a.total_revenue:
         out["blended_mer"] = _r(_div(a.total_revenue, a.spend))
         out["mer_note"] = "If MER is far below platform ROAS, attribution is over-claiming."
@@ -297,6 +347,55 @@ def loan(a):
     return out
 
 
+def cashflow(a):
+    """Indirect-method cash flow: why profit and bank balance disagree."""
+    dna = (a.depreciation or 0) + (a.amortization or 0)
+    ocf = (a.net_profit + dna
+           - (a.delta_ar or 0)
+           - (a.delta_inventory or 0)
+           + (a.delta_ap or 0)
+           + (a.other_operating or 0))
+    investing = -(a.capex or 0) + (a.asset_sales or 0)
+    financing = (-(a.loan_principal or 0) - (a.drawings or 0)
+                 + (a.new_financing or 0))
+    net_change = ocf + investing + financing
+    out = {
+        "net_profit": _r(a.net_profit),
+        "add_back_depreciation_amortization": _r(dna),
+        "less_increase_in_receivables": _r(a.delta_ar or 0),
+        "less_increase_in_inventory": _r(a.delta_inventory or 0),
+        "add_increase_in_payables": _r(a.delta_ap or 0),
+        "operating_cash_flow": _r(ocf),
+        "less_capex": _r(a.capex or 0),
+        "investing_cash_flow": _r(investing),
+        "less_loan_principal_repaid": _r(a.loan_principal or 0),
+        "less_owner_drawings": _r(a.drawings or 0),
+        "financing_cash_flow": _r(financing),
+        "net_cash_change": _r(net_change),
+        "profit_to_cash_gap": _r(net_change - a.net_profit),
+    }
+    if a.opening_cash is not None:
+        closing = a.opening_cash + net_change
+        out["opening_cash"] = _r(a.opening_cash)
+        out["closing_cash"] = _r(closing)
+        if closing < 0:
+            out["ALERT"] = "Closing cash is negative. This period cannot be funded."
+    if ocf < 0 and a.net_profit > 0:
+        out["reading"] = ("Profitable on paper, cash negative from operations. "
+                          "Working capital is absorbing the profit.")
+    elif net_change < 0 and a.net_profit > 0:
+        out["reading"] = ("Profit is real but below-the-line items (capex, loan "
+                          "principal, drawings) consumed more than it produced. "
+                          "Principal repayment is not an expense but does spend cash.")
+    elif ocf > 0:
+        out["reading"] = "Operations generate cash."
+    else:
+        out["reading"] = "Operations consume cash."
+    out["note"] = ("Indirect method. Unpaid invoices are not cash in; owner "
+                   "drawings are cash out.")
+    return out
+
+
 def dilution(a):
     post = a.pre + a.investment
     inv_pct = _div(a.investment, post)
@@ -347,6 +446,7 @@ COMMANDS = {
     "ccc": "DIO, DSO, DPO, cash conversion cycle",
     "npv": "NPV, IRR, payback for an investment",
     "loan": "EMI, total interest, DSCR",
+    "cashflow": "Operating/investing/financing cash flow, profit-to-cash gap",
     "dilution": "Post-money, investor %, founder dilution",
     "price-test": "Break-even volume loss for a price change",
 }
@@ -369,7 +469,15 @@ def build_parser():
     m.add_argument("--revenue", type=float, required=True)
     m.add_argument("--returns", type=float, default=0)
     m.add_argument("--cogs", type=float, required=True)
-    m.add_argument("--opex", type=float, default=0)
+    m.add_argument("--variable", type=float,
+                   help="costs that scale per order below COGS: outbound "
+                        "shipping, payment gateway, marketplace commission, RTO. "
+                        "Pass 0 explicitly to confirm there are none")
+    m.add_argument("--adspend", type=float,
+                   help="advertising spend for the period (do NOT also put it "
+                        "in --opex). Pass 0 explicitly to confirm there is none")
+    m.add_argument("--opex", type=float, default=0,
+                   help="fixed overhead: rent, salaries, software, utilities")
     m.add_argument("--depreciation", type=float, default=0)
     m.add_argument("--amortization", type=float, default=0)
     m.add_argument("--interest", type=float, default=0)
@@ -380,6 +488,8 @@ def build_parser():
     u.add_argument("--varcost", type=float, required=True)
     u.add_argument("--fixed", type=float, default=0)
     u.add_argument("--units", type=float)
+    u.add_argument("--adspend", type=float,
+                   help="total ad spend for the period covered by --units")
     u.add_argument("--target-profit", type=float, dest="target_profit")
 
     c = sub.add_parser("cac", help=_h("cac"))
@@ -424,6 +534,26 @@ def build_parser():
     l.add_argument("--months", type=int, required=True)
     l.add_argument("--monthly-ocf", type=float, dest="monthly_ocf")
 
+    cf = sub.add_parser("cashflow", help=_h("cashflow"))
+    cf.add_argument("--net-profit", type=float, dest="net_profit", required=True)
+    cf.add_argument("--depreciation", type=float, default=0)
+    cf.add_argument("--amortization", type=float, default=0)
+    cf.add_argument("--delta-ar", type=float, dest="delta_ar", default=0,
+                    help="INCREASE in receivables (negative if it fell)")
+    cf.add_argument("--delta-inventory", type=float, dest="delta_inventory", default=0,
+                    help="INCREASE in inventory (negative if it fell)")
+    cf.add_argument("--delta-ap", type=float, dest="delta_ap", default=0,
+                    help="INCREASE in payables (negative if it fell)")
+    cf.add_argument("--other-operating", type=float, dest="other_operating", default=0)
+    cf.add_argument("--capex", type=float, default=0)
+    cf.add_argument("--asset-sales", type=float, dest="asset_sales", default=0)
+    cf.add_argument("--loan-principal", type=float, dest="loan_principal", default=0,
+                    help="principal repaid — spends cash, is not an expense")
+    cf.add_argument("--drawings", type=float, default=0)
+    cf.add_argument("--new-financing", type=float, dest="new_financing", default=0,
+                    help="loans received or equity injected")
+    cf.add_argument("--opening-cash", type=float, dest="opening_cash")
+
     d = sub.add_parser("dilution", help=_h("dilution"))
     d.add_argument("--pre", type=float, required=True)
     d.add_argument("--investment", type=float, required=True)
@@ -441,6 +571,7 @@ def build_parser():
 DISPATCH = {
     "margins": margins, "unit": unit, "cac": cac, "roas": roas,
     "runway": runway, "ccc": ccc, "npv": npv, "loan": loan,
+    "cashflow": cashflow,
     "dilution": dilution, "price-test": price_test,
 }
 

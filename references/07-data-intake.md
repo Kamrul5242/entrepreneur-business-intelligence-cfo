@@ -27,8 +27,8 @@ was messy, a screenshot, or pasted unstructured text.
 
 | The user asks | Minimum required |
 |---|---|
-| Am I profitable? | Revenue, COGS, operating expenses |
-| Cash in / cash out | Inflow list, outflow list, period |
+| Am I profitable? | Revenue, COGS, **per-order variable costs**, **ad spend**, fixed overhead |
+| Cash in / cash out | Inflow list, outflow list, period — or, from a P&L: net profit, D&A, changes in AR/inventory/AP, capex, loan principal, drawings |
 | Runway | Cash balance, monthly net burn |
 | Break-even | Fixed costs, price, variable cost per unit |
 | Unit economics | Price, variable costs, orders, acquisition spend, new customers |
@@ -53,7 +53,7 @@ Never substitute a guess for a missing input and present the result as fact.
 | Mixed periods | Monthly cost vs annual revenue | Normalize to one period, state which |
 | Revenue vs cash confusion | "Revenue" includes unpaid invoices | Split billed vs collected |
 | Gross vs net revenue | Refunds not deducted | Ask; if unknown, label basis used |
-| Ad spend double-counted | In both COGS and OPEX | Place in OPEX; exclude from COGS |
+| Ad spend double-counted | In both COGS and OPEX | Put it in exactly one place. With `cfo_calc.py` use `--adspend`, and leave it out of `--opex` and `--cogs` |
 | Owner salary missing | Net margin looks impossibly good | Add market-rate owner comp; note it |
 | COGS = invoice cost only | Imported goods, no freight/duty | Reconstruct landed cost |
 | Inventory as expense | Purchases treated as COGS | Adjust for opening/closing stock |
@@ -61,6 +61,34 @@ Never substitute a guess for a missing input and present the result as fact.
 | VAT included in revenue | Revenue inflated | Strip tax to get net revenue |
 | Platform-reported ROAS | Over-attribution | Cross-check against blended MER |
 | Cohort too young for LTV | Lifetime assumed, not observed | Use observed period value; label it |
+
+---
+
+## 3b. Mapping the intake sheet onto `cfo_calc.py`
+
+`assets/business-data-intake-template.csv` has more cost sections than the
+calculator has flags. Fold them like this — **every row lands in exactly one
+flag**:
+
+| CSV section | Rows | `margins` flag |
+|---|---|---|
+| INCOME | Gross Revenue | `--revenue` |
+| INCOME | Returns & Refunds, Discounts | `--returns` |
+| COGS | Product cost, inbound freight, duty, direct labour, packaging | `--cogs` |
+| VARIABLE | Outbound shipping, payment gateway, marketplace commission, RTO | `--variable` |
+| OPEX | Advertising Spend | `--adspend` |
+| OPEX | Salaries, owner comp, rent, software, utilities, professional fees | `--opex` |
+| OPEX | Depreciation & Amortization | `--depreciation` / `--amortization` |
+| BELOW_LINE | Interest, Tax | `--interest`, `--tax` |
+
+**The single most common error is dropping the VARIABLE section.** Shipping,
+gateway fees and RTO routinely total 15–20% of net revenue in COD e-commerce.
+Omitting them, and putting ad spend nowhere, turns a loss into an apparent
+profit — the worked example in `06-worked-examples.md` swings from −৳160,750
+to +৳228,000 that way.
+
+For per-unit work, variable cost per order =
+`(COGS + VARIABLE) ÷ orders`, **not** `COGS ÷ orders`.
 
 ---
 

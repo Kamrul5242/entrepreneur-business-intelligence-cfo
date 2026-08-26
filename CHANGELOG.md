@@ -32,6 +32,45 @@
   version differences change the archive layout, so the SHA-256 changes.
   Re-run `verify_signature.py --generate` after any rebuild.
 
+### Added — cost completeness
+- `margins` gained `--variable` (outbound shipping, payment gateway,
+  marketplace commission, RTO) and `--adspend`. Previously the intake
+  template's whole VARIABLE section had nowhere to go, and the docstring
+  example demonstrated a mapping that reported **+৳228,000** for the
+  `06-worked-examples.md` business whose true result is **−৳160,750**. All
+  three commands now agree on −৳160,750.
+- `margins` warns when `--variable` or `--adspend` is absent. Passing `0`
+  explicitly confirms there are none and silences it; absence and zero are
+  no longer conflated.
+- `unit` gained `--adspend`, plus `break_even_units_incl_ad_spend`,
+  `total_contribution_after_ads` and `ad_cost_per_unit`. Margin of safety is
+  now measured against break-even *including* ad spend: the worked-example
+  store moves from an apparent **+30.6%** cushion to its real **−62.0%**.
+  Without `--adspend` the field is named `operating_profit_before_ad_spend`,
+  because a number that omits a cost should not be called operating profit.
+- New `cashflow` command — indirect method: operating, investing and
+  financing cash flow, profit-to-cash gap, optional opening/closing cash
+  reconciliation. `SKILL.md` §7 and Example 2 previously had no tool support
+  at all. Reproduces Example 2 exactly (OCF −৳85,000, net −৳555,000).
+- `roas` verdict now reads `PROFITABLE on ads (before fixed costs)` and
+  carries a note that fixed overhead has not been deducted.
+- New `scripts/test_cfo_calc.py` — 20 stdlib regression tests covering the
+  three worked examples and every edge case fixed in this release. The
+  repository previously had no tests; a parser-construction test would have
+  caught the Python 3.13 crash.
+
+### Fixed — guidance that caused the wrong answer
+- `references/07-data-intake.md` listed the minimum data for "Am I
+  profitable?" as revenue, COGS and operating expenses. That omits per-order
+  variable costs and ad spend and is the doc-level origin of the sign flip.
+  Corrected, and a new §3b maps every intake-CSV section onto the exact
+  calculator flag.
+- The same file said to place ad spend in OPEX, which would double-count
+  against the new `--adspend`. It now names one destination.
+- `SKILL.md` gained hard rule 8: a profit computed from revenue, COGS and
+  OPEX alone is not a profit, and any missing cost bucket must be named in
+  the same sentence as the number.
+
 ### Fixed — docs
 - `SIGNATURE.json` regenerated; it now also covers `.gitattributes`,
   `CITATION.cff` and `llms.txt`, which previously reported as unmanifested.

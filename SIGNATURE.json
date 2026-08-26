@@ -6,16 +6,21 @@
   "signature": "MKH-EBIC-2.1.0",
   "license": "MIT — attribution required in all copies",
   "notice": "This manifest records a SHA-256 hash of every file at publication. Any modification changes the hash and is detected by verify_signature.py. Removing the attribution does not remove the author's rights under the MIT License.",
-  "file_count": 33,
+  "file_count": 35,
   "files": {
     ".gitattributes": {
       "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
       "bytes": 8,
       "signed": false
     },
+    ".gitignore": {
+      "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793",
+      "bytes": 19,
+      "signed": false
+    },
     "CHANGELOG.md": {
-      "sha256": "1705c1229867f1a7379147239ca1d40188aa1f3a22b3b26768f53d0d522352c1",
-      "bytes": 8196,
+      "sha256": "17a7651af9f3b4575acd25abf0cb56023e265bc4e2b6866e894ca0fbf74c7393",
+      "bytes": 10628,
       "signed": true
     },
     "CITATION.cff": {
@@ -29,13 +34,13 @@
       "signed": true
     },
     "README.md": {
-      "sha256": "3b765dd3c94eb1a08e1e9d3375c5e49c3074db9431a87a070ea6c12faf1fcb53",
-      "bytes": 11130,
+      "sha256": "78f38e228367fe0ed27d744a13f42550863985901c3561682a2f34d51f2c83b4",
+      "bytes": 11327,
       "signed": true
     },
     "SKILL.md": {
-      "sha256": "83d7c1de1e1aea29bb22b0b959df53d9cea23e1c132f1ba2699fb8ceb1cc957d",
-      "bytes": 7524,
+      "sha256": "0c37bbf66e7dd5486b8eee3f60771dbcc213641fc6916eb993a9a9589784b788",
+      "bytes": 7947,
       "signed": true
     },
     "llms.txt": {
@@ -149,8 +154,8 @@
       "signed": true
     },
     "references/07-data-intake.md": {
-      "sha256": "47acd09a8b8e806663fe77244bffbaaa11dbe515d610002d73fa2baf7dcee75b",
-      "bytes": 4390,
+      "sha256": "6cb329cc5ced4eefa4089e57a58d106af40b211988f7ff5ada2fe3650bba9d74",
+      "bytes": 5859,
       "signed": true
     },
     "references/08-currency.md": {
@@ -164,8 +169,13 @@
       "signed": true
     },
     "scripts/cfo_calc.py": {
-      "sha256": "e7b6164982c248a559a20c918b167ca244c8d3a6de6871cfeeedd2ac363046ca",
-      "bytes": 17086,
+      "sha256": "d4df45305a7430bfae2dc421a9b474a3a226e592ba2552a56234a63ac5155c37",
+      "bytes": 24263,
+      "signed": true
+    },
+    "scripts/test_cfo_calc.py": {
+      "sha256": "15e064e29491d406bc230aa8758b4337cce7f0d1df96fe703eb1aeacf62c6c67",
+      "bytes": 7313,
       "signed": true
     },
     "scripts/verify_signature.py": {

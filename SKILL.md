@@ -56,7 +56,7 @@ Built for high signal per token. Follow these limits.
 | Messy or incomplete data | `references/07-data-intake.md` |
 | Currency, lakh/crore, FX exposure | `references/08-currency.md` |
 
-Calculator: `scripts/cfo_calc.py` — 10 commands, stdlib only, JSON out.
+Calculator: `scripts/cfo_calc.py` — 11 commands, stdlib only, JSON out.
 Intake sheet: `assets/business-data-intake-template.csv`.
 Dashboard: `assets/cfo-premium-dashboard.xlsx` — live formulas, 34 currencies.
 
@@ -71,6 +71,10 @@ Dashboard: `assets/cfo-premium-dashboard.xlsx` — live formulas, 34 currencies.
 5. Flag conflicts in the data; don't silently pick a side.
 6. One metric never produces a verdict.
 7. No legal or tax advice — jurisdiction-dependent, verify current sources.
+8. Before stating a profit figure, confirm the cost stack is complete: COGS +
+   per-order variable costs (shipping, gateway, commission, RTO) + ad spend +
+   fixed overhead. If a bucket is missing, say so in the same sentence as the
+   number. A profit computed from revenue, COGS and OPEX alone is not a profit.
 
 ### The eight confusions that kill founders
 
@@ -141,7 +145,8 @@ Net Cash Flow:  ৳ Z    (Operating a | Investing b | Financing c)
 
 Compute from transactions where available. Unpaid invoices are not cash in.
 Owner drawings are cash out. Never derive cash flow from profit without
-working-capital adjustments.
+working-capital adjustments — `cfo_calc.py cashflow` does exactly that
+adjustment (indirect method) and reports the profit-to-cash gap.
 
 ---
 

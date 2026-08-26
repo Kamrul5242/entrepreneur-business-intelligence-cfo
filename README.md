@@ -175,6 +175,9 @@ python3 scripts/build_dashboard.py -o /tmp/dashboard.xlsx
 
 # and the CLI calculator — no pip install, stdlib only
 python3 scripts/cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.335
+
+# regression tests — asserts the calculator agrees with 06-worked-examples.md
+python3 scripts/test_cfo_calc.py
 ```
 
 | Sheet | What's on it |
@@ -273,9 +276,10 @@ entrepreneur-business-intelligence-cfo/
 │   ├── 07-data-intake.md             Messy / incomplete data handling
 │   └── 08-currency.md                34 currencies, BDT default, lakh/crore
 ├── scripts/
-│   ├── cfo_calc.py                   10-command calculator, stdlib only
+│   ├── cfo_calc.py                   11-command calculator, stdlib only
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
-│   └── verify_signature.py           Integrity + attribution checker
+│   ├── verify_signature.py           Integrity + attribution checker
+│   └── test_cfo_calc.py              20 regression tests, stdlib unittest
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 5-sheet dashboard, 90 formulas
 │   └── business-data-intake-template.csv
