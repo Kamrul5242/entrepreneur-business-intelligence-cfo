@@ -19,8 +19,8 @@
       "signed": false
     },
     "CHANGELOG.md": {
-      "sha256": "060ae65f6c95fc63d4cad5d8f19083775ba24f0843f24795553c43f7fe1a1d0a",
-      "bytes": 12778,
+      "sha256": "2e077523317fbb3e86b33ccd605fd74f9a640019e49ae5255bb474583e8d4056",
+      "bytes": 13650,
       "signed": true
     },
     "CITATION.cff": {
@@ -34,8 +34,8 @@
       "signed": true
     },
     "README.md": {
-      "sha256": "c7590ebb7c10b3869d1a39666bfae0d870ec76c1fc3b84164a65f862d9ce0373",
-      "bytes": 12095,
+      "sha256": "5de08d6f9dca648c6f397c91819a893439c18bb369582f93f270aa73784ada0e",
+      "bytes": 12454,
       "signed": true
     },
     "SKILL.md": {
@@ -64,8 +64,8 @@
       "signed": true
     },
     "assets/cfo-premium-dashboard.xlsx": {
-      "sha256": "21bfac3c6c15ff323d3e190d62d58f84afff38d815e3c7b9c760d75fd92d1397",
-      "bytes": 23343,
+      "sha256": "722e36dfd8e50e7bd2c99f942d6b0aa8f83f5dcc16fc9fad2c142a2d490341f6",
+      "bytes": 27090,
       "signed": true
     },
     "docs/INSTALL.md": {
@@ -174,8 +174,8 @@
       "signed": true
     },
     "scripts/build_dashboard.py": {
-      "sha256": "c50248a2796f5b760d2c7711672877527bdad990109b6a665ad04d5764fc111c",
-      "bytes": 38625,
+      "sha256": "f0dab822f346a455abd12a6bc56587e637b52af60ac71a3922fa0915a258db3c",
+      "bytes": 45563,
       "signed": true
     },
     "scripts/cfo_calc.py": {

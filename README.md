@@ -42,7 +42,9 @@ math with real formulas instead of prose.
 
 ![Executive Dashboard](docs/screenshots/02-dashboard.png)
 
-*161 formulas across 6 sheets, zero hardcoded results. The verdict banner is
+*161 formulas across 7 sheets, zero hardcoded results.*
+
+*A **Start Here** sheet opens first and asks for eight numbers, not thirty-eight. The verdict banner The verdict banner is
 itself a formula —
 it names the **root cause** (broken unit economics vs. overhead drag vs.
 healthy), not just "profit is negative."*
@@ -62,8 +64,9 @@ every symbol in the workbook updates.*
 table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 
 > **Note:** these screenshots were captured from the v2.1.0 workbook (5 sheets,
-> 90 formulas). The layout they show is unchanged, but v2.2.0 adds a sixth
-> sheet, **4. Trend**, which does not appear in them.
+> 90 formulas). The sheets they show are unchanged, but v2.2.0 adds two more —
+> **0. Start Here** and **4. Trend** — which do not appear in them, and adds a
+> gold `◀ START HERE` marker beside the eight essential inputs on Setup.
 
 <details>
 <summary><strong>More screenshots — currency reference & signature sheet</strong></summary>
@@ -83,7 +86,7 @@ table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 | Arithmetic | Model does it in its head | Offloaded to a tested Python calculator |
 | Verdict | "Looks concerning" | Names the exact root cause, in ৳/$/€, with the formula shown |
 | Currency | Assumes USD | **BDT default**, 34 currencies, lakh/crore aware |
-| Excel | None | 161-formula live dashboard, 12-month trend, zero hardcoded numbers |
+| Excel | None | 161-formula live dashboard, 12-month trend, guided start, zero hardcoded numbers |
 | Portability | One platform | Claude, GPT, Gemini, Cursor, Copilot, AGENTS.md, raw system prompt |
 | Token cost | Loads everything | Router loads 1–3 files on demand — **~75% smaller** always-on core |
 | Provenance | None | SHA-256 signed manifest, tamper-detectable |
@@ -190,6 +193,7 @@ python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.cs
 
 | Sheet | What's on it |
 |---|---|
+| **0. Start Here** | Plain-language guide: three steps, the eight numbers that matter, what each sheet does, in English and Bangla |
 | **1. Setup** | Every input, yellow-only, 34-currency dropdown |
 | **2. Dashboard** | KPI cards w/ RED-GREEN status · unit economics · cash & runway · liquidity & cash cycle · break-even · auto-diagnosing verdict · profit chart |
 | **3. Scenarios** | Conservative/Base/Aggressive with editable drivers + price-sensitivity table |
@@ -290,7 +294,7 @@ entrepreneur-business-intelligence-cfo/
 │   ├── verify_signature.py           Integrity + attribution checker
 │   └── test_cfo_calc.py              20 regression tests, stdlib unittest
 ├── assets/
-│   ├── cfo-premium-dashboard.xlsx    Live 6-sheet dashboard, 161 formulas
+│   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
 │   └── business-data-intake-example.csv    Worked example 1, filled
 ├── requirements.txt                  openpyxl pin (workbook only; the

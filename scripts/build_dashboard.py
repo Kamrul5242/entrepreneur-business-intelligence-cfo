@@ -751,10 +751,147 @@ sg.protection.sheet = True
 sg.protection.password = "MKH-EBIC"
 sg.protection.enable()
 
+# =====================================================================
+# SHEET 0 — Start Here  (guide; created last, moved to the front)
+# =====================================================================
+sh = wb.create_sheet("0. Start Here", 0)
+sh.sheet_view.showGridLines = False
+banner(sh, 1, "START HERE", span=8,
+       sub="You do not need to understand accounting to use this. "
+           "Fill eight numbers and read the verdict.")
+
+section(sh, 4, "WHAT THIS IS", span=8)
+sh["A5"] = ("A CFO in a spreadsheet. You type what your business earned and spent. "
+            "It tells you whether you are making money, whether each order makes "
+            "money, how long your cash lasts, and what to fix first.")
+style(sh, "A5:H5", size=10, wrap=True, border=False)
+sh.row_dimensions[5].height = 32
+
+section(sh, 7, "THREE STEPS", span=8)
+STEPS = [
+    ("1", "Go to the sheet '1. Setup'. Type over the YELLOW cells only.",
+     "Everything that is not yellow calculates itself. You cannot break it by "
+     "typing in yellow."),
+    ("2", "Start with the eight numbers marked START HERE in column C.",
+     "The other rows are already filled with example numbers. Replace them as "
+     "you find them; the dashboard works before you finish."),
+    ("3", "Read '2. Dashboard' from the top.",
+     "The coloured banner names your single biggest problem in one sentence."),
+]
+r = 8
+for num, title, detail in STEPS:
+    sh.cell(row=r, column=1, value=num)
+    sh.cell(row=r, column=2, value=title)
+    sh.cell(row=r + 1, column=2, value=detail)
+    style(sh, f"A{r}:A{r}", bold=True, size=16, color=WHITE, fill=GOLD, align="center")
+    style(sh, f"B{r}:H{r}", bold=True, size=11)
+    style(sh, f"B{r+1}:H{r+1}", size=9, italic=True, color="4A5A6A", wrap=True)
+    sh.merge_cells(start_row=r, start_column=2, end_row=r, end_column=8)
+    sh.merge_cells(start_row=r + 1, start_column=2, end_row=r + 1, end_column=8)
+    sh.merge_cells(start_row=r, start_column=1, end_row=r + 1, end_column=1)
+    sh.row_dimensions[r + 1].height = 26
+    r += 2
+
+section(sh, 15, "THE EIGHT NUMBERS YOU REALLY NEED", span=8)
+sh.cell(row=16, column=1, value="On '1. Setup'")
+sh.cell(row=16, column=2, value="What it means in plain words")
+sh.cell(row=16, column=6, value="Where to find it")
+style(sh, "A16:H16", bold=True, fill=SLATE, color=WHITE, size=9)
+sh.merge_cells("B16:E16"); sh.merge_cells("F16:H16")
+EIGHT = [
+    ("Gross Revenue", "Everything customers paid you, before refunds.",
+     "Your sales report or bank deposits"),
+    ("Product / Material (LANDED)", "What the goods cost you delivered to your "
+     "door - price plus freight plus duty, not the invoice alone.",
+     "Supplier invoices plus shipping and customs"),
+    ("Outbound Shipping", "Courier cost you actually pay, after what the "
+     "customer covers.", "Courier bill"),
+    ("Advertising Spend", "Every platform added together.",
+     "Meta, Google, TikTok billing"),
+    ("Salaries (non-production)", "People who are paid whether or not you sell "
+     "anything.", "Payroll"),
+    ("Rent", "Shop, office or warehouse.", "Rent receipt"),
+    ("Number of Orders", "How many orders in the period. This turns totals into "
+     "per-order economics.", "Order dashboard"),
+    ("Cash & Bank (closing)", "What is actually in the bank on the last day.",
+     "Bank statement"),
+]
+r = 17
+for label, meaning, where in EIGHT:
+    sh.cell(row=r, column=1, value=label)
+    sh.cell(row=r, column=2, value=meaning)
+    sh.cell(row=r, column=6, value=where)
+    sh.merge_cells(start_row=r, start_column=2, end_row=r, end_column=5)
+    sh.merge_cells(start_row=r, start_column=6, end_row=r, end_column=8)
+    r += 1
+style(sh, f"A17:A{r-1}", bold=True, size=9, fill=LIGHT)
+style(sh, f"B17:E{r-1}", size=9, wrap=True)
+style(sh, f"F17:H{r-1}", size=9, italic=True, color="4A5A6A", wrap=True)
+for rr in range(17, r):
+    sh.row_dimensions[rr].height = 26
+
+section(sh, r + 1, "WHAT EACH SHEET DOES", span=8)
+GUIDE = [
+    ("1. Setup", "Where you type. Yellow cells only."),
+    ("2. Dashboard", "The answer. Profit, unit economics, cash, runway, verdict."),
+    ("3. Scenarios", "What if sales fall 25%? What if ads get cheaper?"),
+    ("4. Trend", "Twelve months side by side. Is it getting better or worse?"),
+    ("Ref", "The 34-currency table. You do not need to touch it."),
+    ("Signature", "Who built this. Locked."),
+]
+rr = r + 2
+for name, what in GUIDE:
+    sh.cell(row=rr, column=1, value=name)
+    sh.cell(row=rr, column=2, value=what)
+    sh.merge_cells(start_row=rr, start_column=2, end_row=rr, end_column=8)
+    rr += 1
+style(sh, f"A{r+2}:A{rr-1}", bold=True, size=9, fill=BAND)
+style(sh, f"B{r+2}:H{rr-1}", size=9)
+
+section(sh, rr + 1, "READ THIS BEFORE YOU TRUST THE NUMBER", span=8)
+sh.cell(row=rr + 2, column=1,
+        value="Profit is not cash. You can show a profit here and still have an "
+              "empty bank account, because loan principal, owner drawings and "
+              "stock purchases spend cash without appearing as costs. If the "
+              "profit line and your bank balance disagree, believe the bank.")
+style(sh, f"A{rr+2}:H{rr+2}", size=10, wrap=True, color=RED, bold=True)
+sh.merge_cells(start_row=rr + 2, start_column=1, end_row=rr + 2, end_column=8)
+sh.row_dimensions[rr + 2].height = 44
+
+sh.cell(row=rr + 4, column=1,
+        value="বাংলা:  শুধু হলুদ ঘরগুলোতে আপনার সংখ্যা লিখুন। বাকি সব নিজে হিসাব হয়ে যাবে। "
+              "'২. Dashboard' শীটে গিয়ে উপরের রঙিন লাইনটা পড়ুন — ওখানে আপনার "
+              "সবচেয়ে বড় সমস্যাটা এক লাইনে লেখা থাকবে।")
+style(sh, f"A{rr+4}:H{rr+4}", size=10, wrap=True, fill=LIGHT)
+sh.merge_cells(start_row=rr + 4, start_column=1, end_row=rr + 4, end_column=8)
+sh.row_dimensions[rr + 4].height = 34
+
+sigfooter(sh, rr + 6, span=8)
+for k, v in {"A": 26, "B": 16, "C": 14, "D": 14, "E": 14,
+             "F": 16, "G": 14, "H": 14}.items():
+    sh.column_dimensions[k].width = v
+
+# ---- mark the eight essential inputs on the Setup sheet (column C: unused,
+# ---- so no formula reference shifts)
+ESSENTIAL_ROWS = [12, 19, 26, 34, 35, 37, 53, 58]
+for _r in ESSENTIAL_ROWS:
+    s.cell(row=_r, column=3, value="◀ START HERE")
+    style(s, f"C{_r}:C{_r}", bold=True, size=9, color=WHITE, fill=GOLD, align="center")
+s.column_dimensions["C"].width = 16
+
+# ---- tab colours: green = you type here, navy = read the answer, grey = reference
+for _n, _c in (("0. Start Here", GOLD), ("1. Setup", GREEN), ("2. Dashboard", NAVY),
+               ("3. Scenarios", NAVY2), ("4. Trend", NAVY2),
+               ("Ref", BORDER), ("Signature", SLATE)):
+    wb[_n].sheet_properties.tabColor = _c
+
+wb.active = 0
+
 # print areas — tight, landscape, fit-to-page, so PDF/print/screenshot export
 # is clean instead of dumping the full default A1:XFD grid
 from openpyxl.worksheet.page import PageMargins
 PRINT_AREAS = {
+    "0. Start Here": "A1:H48",
     "1. Setup": "A1:H70", "2. Dashboard": "A1:H70",
     "3. Scenarios": "A1:F35", "4. Trend": "A1:M40",
     "Ref": "A1:D36", "Signature": "A1:B14",

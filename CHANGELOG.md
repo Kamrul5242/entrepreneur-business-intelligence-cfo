@@ -2,6 +2,20 @@
 
 ## 2.2.0 — 2026-08-27
 
+### Added — the workbook now explains itself
+- New sheet **0. Start Here**, opening first: what the workbook is, three
+  steps, the eight numbers that actually matter (with plain-English meanings
+  and where to find each one), a guide to every sheet, a warning that profit
+  is not cash, and a Bangla summary. The workbook previously opened on a
+  Setup sheet with thirty-eight input fields and no indication which mattered.
+- The eight essential inputs on **1. Setup** now carry a gold `◀ START HERE`
+  marker in column C. Column C was empty, so no formula reference moved.
+- Sheet tabs are colour-coded: gold for the guide, green for the sheet you
+  type into, navy for the answer, grey for reference.
+- These are additive only — the 161 formulas and every cell reference are
+  unchanged, verified by re-evaluating the Trend sheet's formulas after the
+  rebuild.
+
 ### Added — the intake sheet is now executable
 - New `intake` command: `cfo_calc.py intake --file <filled-template>.csv`
   reads the intake sheet and runs the whole chain in one call — P&L, unit
