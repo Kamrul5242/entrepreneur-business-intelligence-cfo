@@ -19,6 +19,15 @@ excluded from net revenue, so no separate refund provision is applied.
 
 ### Step 3 — Calculate
 
+> **Using `cfo_calc.py` for this example:** no single command produces the
+> figure below. `margins` has no input for ad spend or per-order fees, and
+> `unit` has no input for ad spend, so each returns a *profit* for this
+> business. Build the variable stack first, then chain:
+> `unit --price 500 --varcost 347.5 --fixed 180000 --units 1700` for
+> contribution, then `roas --revenue 850000 --spend 240000 --cm-ratio 0.305`
+> for contribution after ads, then subtract fixed costs. See the cost stack
+> below — ৳347.5 of variable cost per order, not ৳260 of COGS.
+
 ```
 Net Revenue      = 920,000 − 70,000            = ৳850,000
 Gross Profit     = 850,000 − 442,000           = ৳408,000
@@ -53,8 +62,11 @@ shipping and packaging come out, contribution margin before ads is **30.5%**,
 which sets break-even ROAS at **3.28x**. The store is running at 3.54x. That
 0.26x of headroom is the entire business — **৳11 of contribution per order.**
 
-Fixed costs of ৳180,000 need ৳590,000 of contribution to cover. The store
-produces ৳19,250. The gap is **৳160,750 lost every month.**
+Covering ৳180,000 of fixed cost at a 30.5% contribution margin takes
+**৳590,000 of net revenue** — the store does ৳850,000, so revenue is not the
+problem. Ads are: after ad spend the ৳259,250 of contribution falls to
+**৳19,250**, against ৳180,000 of fixed cost. The gap is
+**৳160,750 lost every month.**
 
 ### Step 6 — Sensitivity
 Ad cost is the dominant variable. At 3.28x ROAS, contribution goes to zero.

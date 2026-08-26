@@ -347,9 +347,14 @@ COMMANDS = {
     "ccc": "DIO, DSO, DPO, cash conversion cycle",
     "npv": "NPV, IRR, payback for an investment",
     "loan": "EMI, total interest, DSCR",
-    "dilution": "Post-money, investor %%, founder dilution",
+    "dilution": "Post-money, investor %, founder dilution",
     "price-test": "Break-even volume loss for a price change",
 }
+
+
+def _h(key):
+    """argparse %-expands help strings, so a literal % must be doubled."""
+    return COMMANDS[key].replace("%", "%%")
 
 
 def build_parser():
@@ -360,7 +365,7 @@ def build_parser():
 
     sub.add_parser("list", help="List all commands")
 
-    m = sub.add_parser("margins", help=COMMANDS["margins"])
+    m = sub.add_parser("margins", help=_h("margins"))
     m.add_argument("--revenue", type=float, required=True)
     m.add_argument("--returns", type=float, default=0)
     m.add_argument("--cogs", type=float, required=True)
@@ -370,14 +375,14 @@ def build_parser():
     m.add_argument("--interest", type=float, default=0)
     m.add_argument("--tax", type=float, default=0)
 
-    u = sub.add_parser("unit", help=COMMANDS["unit"])
+    u = sub.add_parser("unit", help=_h("unit"))
     u.add_argument("--price", type=float, required=True)
     u.add_argument("--varcost", type=float, required=True)
     u.add_argument("--fixed", type=float, default=0)
     u.add_argument("--units", type=float)
     u.add_argument("--target-profit", type=float, dest="target_profit")
 
-    c = sub.add_parser("cac", help=COMMANDS["cac"])
+    c = sub.add_parser("cac", help=_h("cac"))
     c.add_argument("--spend", type=float, required=True)
     c.add_argument("--customers", type=float, required=True)
     c.add_argument("--ltv", type=float)
@@ -388,18 +393,18 @@ def build_parser():
     c.add_argument("--lifetime", type=float, help="periods, same unit as ARPU")
     c.add_argument("--churn", type=float, help="decimal per period")
 
-    r = sub.add_parser("roas", help=COMMANDS["roas"])
+    r = sub.add_parser("roas", help=_h("roas"))
     r.add_argument("--revenue", type=float, required=True)
     r.add_argument("--spend", type=float, required=True)
     r.add_argument("--cm-ratio", type=float, dest="cm_ratio",
                    help="decimal CM ratio before ads, e.g. 0.305")
     r.add_argument("--total-revenue", type=float, dest="total_revenue")
 
-    rw = sub.add_parser("runway", help=COMMANDS["runway"])
+    rw = sub.add_parser("runway", help=_h("runway"))
     rw.add_argument("--cash", type=float, required=True)
     rw.add_argument("--burn", type=float, required=True)
 
-    cc = sub.add_parser("ccc", help=COMMANDS["ccc"])
+    cc = sub.add_parser("ccc", help=_h("ccc"))
     cc.add_argument("--inventory", type=float, required=True)
     cc.add_argument("--ar", type=float, required=True)
     cc.add_argument("--ap", type=float, required=True)
@@ -407,24 +412,24 @@ def build_parser():
     cc.add_argument("--revenue", type=float, required=True)
     cc.add_argument("--days", type=int, default=30)
 
-    n = sub.add_parser("npv", help=COMMANDS["npv"])
+    n = sub.add_parser("npv", help=_h("npv"))
     n.add_argument("--rate", type=float, required=True, help="decimal per period")
     n.add_argument("--initial", type=float, required=True)
     n.add_argument("--flows", type=str, required=True, help="comma-separated")
 
-    l = sub.add_parser("loan", help=COMMANDS["loan"])
+    l = sub.add_parser("loan", help=_h("loan"))
     l.add_argument("--principal", type=float, required=True)
     l.add_argument("--annual-rate", type=float, dest="annual_rate", required=True,
                    help="decimal, e.g. 0.14 for 14%% per year")
     l.add_argument("--months", type=int, required=True)
     l.add_argument("--monthly-ocf", type=float, dest="monthly_ocf")
 
-    d = sub.add_parser("dilution", help=COMMANDS["dilution"])
+    d = sub.add_parser("dilution", help=_h("dilution"))
     d.add_argument("--pre", type=float, required=True)
     d.add_argument("--investment", type=float, required=True)
     d.add_argument("--founder", type=float, default=100)
 
-    pt = sub.add_parser("price-test", help=COMMANDS["price-test"])
+    pt = sub.add_parser("price-test", help=_h("price-test"))
     pt.add_argument("--price", type=float, required=True)
     pt.add_argument("--varcost", type=float, required=True)
     pt.add_argument("--units", type=float, default=1)

@@ -144,8 +144,8 @@
       "signed": true
     },
     "references/06-worked-examples.md": {
-      "sha256": "ff88a5abfc57561305022d7b91eec69a6f85a4570cd22b44245f7055a8b75a0b",
-      "bytes": 8013,
+      "sha256": "db81193edf367433affbaf22b4ea314999cb0a69b1e0cd0d5b2fed55c547dcff",
+      "bytes": 8761,
       "signed": true
     },
     "references/07-data-intake.md": {
@@ -164,8 +164,8 @@
       "signed": true
     },
     "scripts/cfo_calc.py": {
-      "sha256": "adbc1b53ead0bd5522c3fedde11daf86ef732057676e8b7ca8ba2a7c82a8c3a1",
-      "bytes": 17013,
+      "sha256": "e7b6164982c248a559a20c918b167ca244c8d3a6de6871cfeeedd2ac363046ca",
+      "bytes": 17086,
       "signed": true
     },
     "scripts/verify_signature.py": {
