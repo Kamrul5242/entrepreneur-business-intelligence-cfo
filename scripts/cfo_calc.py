@@ -87,8 +87,10 @@ def margins(a):
 def unit(a):
     cm = a.price - a.varcost
     cm_ratio = _div(cm, a.price)
-    bep_units = _div(a.fixed, cm) if a.fixed else None
-    bep_rev = _div(a.fixed, cm_ratio) if (a.fixed and cm_ratio) else None
+    # A non-positive CM never recovers fixed cost: break-even is undefined,
+    # not a negative number of units.
+    bep_units = _div(a.fixed, cm) if (a.fixed and cm > 0) else None
+    bep_rev = _div(a.fixed, cm_ratio) if (a.fixed and cm_ratio and cm > 0) else None
     out = {
         "price": _r(a.price),
         "variable_cost": _r(a.varcost),
@@ -96,7 +98,7 @@ def unit(a):
         "cm_ratio_pct": _pct(cm_ratio),
         "break_even_units": None if bep_units is None else round(bep_units, 1),
         "break_even_revenue": _r(bep_rev),
-        "break_even_roas": _r(_div(1, cm_ratio)),
+        "break_even_roas": _r(_div(1, cm_ratio)) if cm > 0 else None,
     }
     if a.units:
         total_cm = cm * a.units
@@ -106,8 +108,9 @@ def unit(a):
         if bep_units:
             out["margin_of_safety_pct"] = _pct(_div(a.units - bep_units, a.units))
     if a.target_profit:
-        out["units_for_target_profit"] = round(
-            _div((a.fixed or 0) + a.target_profit, cm), 1)
+        need = _div((a.fixed or 0) + a.target_profit, cm) if cm > 0 else None
+        out["units_for_target_profit"] = (
+            None if need is None else round(need, 1))
     if cm <= 0:
         out["ALERT"] = "Contribution margin is zero or negative. Every sale loses money."
     return out
@@ -149,10 +152,14 @@ def roas(a):
         out["cm_ratio_before_ads_pct"] = _pct(a.cm_ratio)
         out["break_even_roas"] = _r(be)
         out["headroom"] = _r(r - be) if (r and be) else None
-        out["verdict"] = (
-            "PROFITABLE on ads" if (r and be and r > be)
-            else "LOSING MONEY on ads at this ROAS"
-        )
+        if r is None or be is None:
+            out["verdict"] = "not computable — need both ROAS and CM ratio"
+        elif r > be:
+            out["verdict"] = "PROFITABLE on ads"
+        elif r == be:
+            out["verdict"] = "BREAK-EVEN on ads — no contribution after ad cost"
+        else:
+            out["verdict"] = "LOSING MONEY on ads at this ROAS"
         contribution = a.revenue * a.cm_ratio - a.spend
         out["contribution_after_ads"] = _r(contribution)
     if a.total_revenue:
@@ -164,7 +171,14 @@ def roas(a):
 def runway(a):
     months = _div(a.cash, a.burn)
     status = "unknown"
-    if months is not None:
+    if a.burn is not None and a.burn <= 0:
+        # Burn <= 0 means cash is not being consumed. Dividing cash by a
+        # negative burn yields a negative "runway" that would otherwise be
+        # graded CRITICAL, inverting the verdict for a healthy business.
+        months = None
+        status = ("CASH POSITIVE — net cash is growing, runway is not limiting"
+                  if a.burn < 0 else "NO NET BURN — cash is flat")
+    elif months is not None:
         if months < 3:
             status = "CRITICAL — survival mode"
         elif months < 6:
@@ -273,9 +287,11 @@ def loan(a):
     }
     if a.monthly_ocf:
         out["monthly_operating_cash_flow"] = _r(a.monthly_ocf)
-        out["dscr"] = _r(_div(a.monthly_ocf, emi))
+        dscr = _div(a.monthly_ocf, emi)
+        out["dscr"] = _r(dscr)
         out["dscr_reading"] = (
-            "Below 1.0 — cannot service from operations" if _div(a.monthly_ocf, emi) < 1
+            "not computable — EMI is zero" if dscr is None
+            else "Below 1.0 — cannot service from operations" if dscr < 1
             else "Above 1.0 — serviceable, check the conservative scenario too"
         )
     return out
@@ -331,7 +347,7 @@ COMMANDS = {
     "ccc": "DIO, DSO, DPO, cash conversion cycle",
     "npv": "NPV, IRR, payback for an investment",
     "loan": "EMI, total interest, DSCR",
-    "dilution": "Post-money, investor %, founder dilution",
+    "dilution": "Post-money, investor %%, founder dilution",
     "price-test": "Break-even volume loss for a price change",
 }
 
@@ -398,7 +414,8 @@ def build_parser():
 
     l = sub.add_parser("loan", help=COMMANDS["loan"])
     l.add_argument("--principal", type=float, required=True)
-    l.add_argument("--annual-rate", type=float, dest="annual_rate", required=True)
+    l.add_argument("--annual-rate", type=float, dest="annual_rate", required=True,
+                   help="decimal, e.g. 0.14 for 14%% per year")
     l.add_argument("--months", type=int, required=True)
     l.add_argument("--monthly-ocf", type=float, dest="monthly_ocf")
 

@@ -1,6 +1,31 @@
 #!/usr/bin/env python3
 """Build the premium multi-currency CFO dashboard workbook."""
+import argparse
 import os
+import sys
+
+_DEFAULT_OUT = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "..", "assets", "cfo-premium-dashboard.xlsx"))
+
+_ap = argparse.ArgumentParser(
+    description="Rebuild the CFO premium dashboard workbook.",
+    epilog="The default target is a released, SHA-256 signed asset. Rebuilding "
+           "it changes its hash and makes verify_signature.py report TAMPERED, "
+           "so overwriting requires --force.")
+_ap.add_argument("--output", "-o", default=_DEFAULT_OUT,
+                 help="where to write the workbook (default: %(default)s)")
+_ap.add_argument("--force", "-f", action="store_true",
+                 help="overwrite the output file if it already exists")
+ARGS = _ap.parse_args()
+
+if os.path.exists(ARGS.output) and not ARGS.force:
+    sys.exit(
+        "refusing to overwrite an existing workbook:\n"
+        "  {}\n"
+        "This file is recorded in SIGNATURE.json; rebuilding changes its hash.\n"
+        "Re-run with --force to overwrite, or -o PATH to write elsewhere."
+        .format(ARGS.output))
 from openpyxl import Workbook
 from openpyxl.styles import (Font, PatternFill, Alignment, Border, Side,
                              NamedStyle, Protection)
@@ -666,9 +691,7 @@ wb.properties.keywords = f"{AUTHOR}, {SIG}, CFO, dashboard, BDT, multi-currency"
 wb.properties.category = "Financial Analysis"
 wb.properties.identifier = SIG
 
-out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                   "..", "assets", "cfo-premium-dashboard.xlsx")
-out = os.path.normpath(out)
+out = ARGS.output
 wb.save(out)
 print("saved:", out)
 print("sheets:", wb.sheetnames)

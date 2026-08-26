@@ -1,5 +1,49 @@
 # Changelog
 
+## Unreleased
+
+### Fixed — `scripts/cfo_calc.py`
+- **Every command crashed on Python 3.13+.** A bare `%` in the `dilution` help
+  string made argparse raise `ValueError: badly formed help string` while
+  building the parser, before any argument was read. On 3.8–3.12 the same
+  string broke `--help`. Escaped to `%%`.
+- `runway` graded a cash-generating business as `CRITICAL — survival mode`.
+  A negative burn divided into cash produced a negative runway that fell
+  through the `< 3` test. Non-positive burn is now reported as
+  `CASH POSITIVE` / `NO NET BURN` with no month count.
+- `unit --target-profit` raised `TypeError: type NoneType doesn't define
+  __round__` when contribution margin was zero — the exact case the command
+  has an ALERT for. Break-even units, break-even revenue and break-even ROAS
+  now return `null` instead of negative values when CM ≤ 0.
+- `roas` called an exact break-even `LOSING MONEY`; it now reports
+  `BREAK-EVEN on ads`.
+- `loan --monthly-ocf` raised `TypeError` comparing a `None` DSCR when EMI
+  was zero.
+- `--annual-rate` now documents that it takes a decimal (`0.14`), matching
+  `npv --rate`.
+
+### Fixed — `scripts/build_dashboard.py`
+- The script took no arguments, so `--help` silently rebuilt and overwrote
+  `assets/cfo-premium-dashboard.xlsx` — a signed asset — making
+  `verify_signature.py` report `TAMPERED`. It now parses `--output/-o` and
+  `--force`, and refuses to overwrite an existing workbook without `--force`.
+- Note on reproducibility: a rebuild is not byte-identical to the published
+  workbook. The embedded document-properties signature survives, but openpyxl
+  version differences change the archive layout, so the SHA-256 changes.
+  Re-run `verify_signature.py --generate` after any rebuild.
+
+### Fixed — docs
+- `SIGNATURE.json` regenerated; it now also covers `.gitattributes`,
+  `CITATION.cff` and `llms.txt`, which previously reported as unmanifested.
+- README: corrected the compact-core character count (7,523, not 7,529),
+  added the three files missing from the repo tree, documented that
+  `universal-compact-core.md`, `system-prompt.txt` and
+  `gemini-gem-instructions.md` are byte-identical, and updated the rebuild
+  command for the new `--force` guard.
+- Added `.gitattributes` (`* -text`). Git for Windows defaults to
+  `core.autocrlf=true`, which rewrote LF to CRLF on clone and made all 24
+  signed text files fail verification with a false `TAMPERED`.
+
 ## 2.1.0 — 2026-08-20
 
 ### Removed

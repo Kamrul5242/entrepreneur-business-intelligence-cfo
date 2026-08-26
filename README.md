@@ -110,7 +110,7 @@ cp -r entrepreneur-business-intelligence-cfo \
 ```
 Configure → Instructions →
 paste platforms/universal-compact-core.md
-(7,529 chars — fits the 8,000 cap)
+(7,523 chars — fits the 8,000 cap)
 ```
 
 </td><td width="50%">
@@ -165,8 +165,13 @@ directly and edit the yellow cells.
 ## The Excel dashboard
 
 ```bash
-# rebuild it after editing scripts/build_dashboard.py
-python3 scripts/build_dashboard.py
+# rebuild it after editing scripts/build_dashboard.py.
+# The workbook is a signed asset, so overwriting is opt-in:
+python3 scripts/build_dashboard.py --force
+python3 scripts/verify_signature.py --generate   # re-sign after rebuilding
+
+# or build somewhere else and leave the signed copy alone:
+python3 scripts/build_dashboard.py -o /tmp/dashboard.xlsx
 
 # and the CLI calculator — no pip install, stdlib only
 python3 scripts/cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.335
@@ -252,6 +257,9 @@ entrepreneur-business-intelligence-cfo/
 ├── LICENSE                           MIT
 ├── CHANGELOG.md
 ├── SIGNATURE.json                    SHA-256 integrity manifest
+├── CITATION.cff                      Citation metadata for GitHub
+├── llms.txt                          Descriptor for AI answer engines
+├── .gitattributes                    Pins checkout bytes so hashes verify everywhere
 ├── docs/
 │   ├── INSTALL.md                    Full install guide, every platform
 │   └── screenshots/                  This README's images
@@ -271,14 +279,14 @@ entrepreneur-business-intelligence-cfo/
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 5-sheet dashboard, 90 formulas
 │   └── business-data-intake-template.csv
-└── platforms/                        Pre-formatted for 8 different AI tools
+└── platforms/                        The core instructions, per-tool
     ├── universal-compact-core.md     7.5 KB — fits any instruction box
-    ├── system-prompt.txt
-    ├── cursor-rule.mdc
-    ├── windsurf-rules.md
-    ├── copilot-instructions.md
-    ├── gemini-gem-instructions.md
-    └── AGENTS.md
+    ├── system-prompt.txt             same text, plain-prompt filename
+    ├── gemini-gem-instructions.md    same text, Gemini Gem filename
+    ├── cursor-rule.mdc               + Cursor rule frontmatter
+    ├── windsurf-rules.md             + Windsurf rules format
+    ├── copilot-instructions.md       + Copilot instructions format
+    └── AGENTS.md                     AGENTS.md convention
 ```
 
 ---
