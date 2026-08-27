@@ -2,7 +2,15 @@
 
 ## 2.2.0 — 2026-08-27
 
-### Added — the workbook now explains itself
+### Known issue
+- Rebuilding `assets/cfo-premium-dashboard.xlsx` with openpyxl 3.1.5 yields a
+  workbook Excel will not open, repair mode included. Reproduced with the
+  unmodified original builder, so it predates this release's changes. Charts,
+  conditional formatting, comments, data validation, the protection password,
+  print areas, tab colours and page setup are each ruled out. The shipped
+  binary is the original build and opens normally.
+
+### Added — the builder now explains itself (not yet in the shipped workbook)
 - New sheet **0. Start Here**, opening first: what the workbook is, three
   steps, the eight numbers that actually matter (with plain-English meanings
   and where to find each one), a guide to every sheet, a warning that profit
@@ -33,11 +41,11 @@
   `05-ecommerce-and-inventory.md` §7 listed these; nothing computed them.
   Safety stock states its own basis, and says so plainly when it is zero
   because no variability input was given.
-- New sheet **4. Trend** in the workbook — twelve months side by side with
-  contribution, operating profit, cumulative profit and month-on-month
-  revenue growth, plus a revenue-vs-profit line chart. The workbook was a
-  single-month snapshot, which cannot answer "is this getting better".
-  Workbook formula count rises from 90 to 161.
+- Sheets **0. Start Here** and **4. Trend** are implemented in
+  `scripts/build_dashboard.py` but are **NOT in the shipped workbook**. Any
+  rebuild under openpyxl 3.1.5 — including one from the unmodified original
+  script — produces a file Excel refuses to open, so the original workbook
+  binary ships unchanged. See the Known issue box in README.md.
 - New `requirements.txt` pinning `openpyxl==3.1.5`. The calculator and its
   tests remain standard-library only; the pin exists because openpyxl changes
   the archive layout between releases, which changes the workbook's SHA-256

@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Build the premium multi-currency CFO dashboard workbook."""
+"""Build the premium multi-currency CFO dashboard workbook.
+
+KNOWN ISSUE: under openpyxl 3.1.5 the workbook this writes cannot be opened by
+Excel 16.0.20326 - not even in repair mode. Reproduced with the unmodified
+original version of this script, so it is not caused by the Trend or Start Here
+sheets. ALWAYS open the output in Excel before shipping it. The committed
+workbook is the original build, which opens correctly; do not overwrite it with
+an unverified rebuild."""
 import argparse
 import os
 import sys

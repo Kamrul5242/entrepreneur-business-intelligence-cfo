@@ -10,7 +10,7 @@
 [![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
 [![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.0-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
-[![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
+[![Formulas](https://img.shields.io/badge/dashboard-90%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
 **Author: [Md Kamrul Hasan](https://github.com/Kamrul5242)**
 
@@ -42,10 +42,7 @@ math with real formulas instead of prose.
 
 ![Executive Dashboard](docs/screenshots/02-dashboard.png)
 
-*161 formulas across 7 sheets, zero hardcoded results.*
-
-*A **Start Here** sheet opens first and asks for eight numbers, not thirty-eight. The verdict banner The verdict banner is
-itself a formula —
+*90 formulas, 0 recalculation errors. The verdict banner is itself a formula —
 it names the **root cause** (broken unit economics vs. overhead drag vs.
 healthy), not just "profit is negative."*
 
@@ -63,10 +60,7 @@ every symbol in the workbook updates.*
 *Edit the yellow drivers, watch all three columns and the price-sensitivity
 table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 
-> **Note:** these screenshots were captured from the v2.1.0 workbook (5 sheets,
-> 90 formulas). The sheets they show are unchanged, but v2.2.0 adds two more —
-> **0. Start Here** and **4. Trend** — which do not appear in them, and adds a
-> gold `◀ START HERE` marker beside the eight essential inputs on Setup.
+> **Note:** these screenshots match the shipped workbook exactly.
 
 <details>
 <summary><strong>More screenshots — currency reference & signature sheet</strong></summary>
@@ -86,7 +80,7 @@ table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 | Arithmetic | Model does it in its head | Offloaded to a tested Python calculator |
 | Verdict | "Looks concerning" | Names the exact root cause, in ৳/$/€, with the formula shown |
 | Currency | Assumes USD | **BDT default**, 34 currencies, lakh/crore aware |
-| Excel | None | 161-formula live dashboard, 12-month trend, guided start, zero hardcoded numbers |
+| Excel | None | 90-formula live dashboard, zero hardcoded numbers |
 | Portability | One platform | Claude, GPT, Gemini, Cursor, Copilot, AGENTS.md, raw system prompt |
 | Token cost | Loads everything | Router loads 1–3 files on demand — **~75% smaller** always-on core |
 | Provenance | None | SHA-256 signed manifest, tamper-detectable |
@@ -172,6 +166,30 @@ directly and edit the yellow cells.
 
 ## The Excel dashboard
 
+> ### Known issue — do not rebuild the workbook
+>
+> `assets/cfo-premium-dashboard.xlsx` is the original build and opens correctly
+> in Excel. **Rebuilding it with openpyxl 3.1.5 produces a file Excel refuses to
+> open** ("Open method of Workbooks class failed"), even in repair mode. This was
+> reproduced with the *unmodified* original `build_dashboard.py`, so it is not
+> caused by any recent change to the script. Verified against Excel 16.0.20326:
+>
+> | File | Opens in Excel |
+> |---|---|
+> | Shipped workbook (original build) | yes, 5 sheets |
+> | Same script rebuilt under openpyxl 3.1.5 | no |
+> | A trivial openpyxl 3.1.5 file | yes |
+> | Shipped workbook loaded and re-saved by openpyxl 3.1.5 | yes |
+>
+> Ruled out so far: charts, conditional formatting, cell comments, data
+> validation, the sheet-protection password, print areas, tab colours and page
+> setup. Because the shipped file re-saves cleanly through openpyxl, the fault is
+> in what the builder *writes*, not in openpyxl's writer generally.
+>
+> Until it is found, the **0. Start Here** and **4. Trend** sheets exist in
+> `scripts/build_dashboard.py` but are **not** in the shipped workbook.
+
+
 ```bash
 # rebuild it after editing scripts/build_dashboard.py.
 # The workbook is a signed asset, so overwriting is opt-in:
@@ -193,11 +211,9 @@ python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.cs
 
 | Sheet | What's on it |
 |---|---|
-| **0. Start Here** | Plain-language guide: three steps, the eight numbers that matter, what each sheet does, in English and Bangla |
 | **1. Setup** | Every input, yellow-only, 34-currency dropdown |
 | **2. Dashboard** | KPI cards w/ RED-GREEN status · unit economics · cash & runway · liquidity & cash cycle · break-even · auto-diagnosing verdict · profit chart |
 | **3. Scenarios** | Conservative/Base/Aggressive with editable drivers + price-sensitivity table |
-| **4. Trend** | 12 months side by side — contribution, operating profit, cumulative profit, MoM growth, revenue-vs-profit chart |
 | **Ref** | 34-currency master table |
 | **Signature** | Locked, password-protected provenance record |
 
@@ -294,7 +310,7 @@ entrepreneur-business-intelligence-cfo/
 │   ├── verify_signature.py           Integrity + attribution checker
 │   └── test_cfo_calc.py              20 regression tests, stdlib unittest
 ├── assets/
-│   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
+│   ├── cfo-premium-dashboard.xlsx    Live 5-sheet dashboard, 90 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
 │   └── business-data-intake-example.csv    Worked example 1, filled
 ├── requirements.txt                  openpyxl pin (workbook only; the

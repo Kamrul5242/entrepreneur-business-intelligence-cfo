@@ -12,6 +12,9 @@
 #
 #   python3 -m pip install -r requirements.txt
 
+# WARNING: under 3.1.5, running build_dashboard.py produces a workbook Excel
+# refuses to open. Never ship a rebuild without opening it in Excel first.
+# See the Known issue box in README.md.
 openpyxl==3.1.5
 
 # Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.0
