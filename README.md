@@ -196,6 +196,11 @@ directly and edit the yellow cells.
 > The shipped binary predated that line, which is why the fault stayed hidden.
 > It is now `Nirmala UI`, and the rebuild is verified by opening it in Excel.
 >
+> The build is also **deterministic**: two runs produce byte-identical files,
+> so a rebuild reproduces the committed workbook exactly and still verifies
+> against `SIGNATURE.json`. An `.xlsx` is a ZIP, so entry timestamps and
+> `dcterms:modified` are pinned (override with `SOURCE_DATE_EPOCH`).
+>
 > `scripts/test_workbook_excel.py` guards against a repeat. It checks font
 > names, conditional-format fills, sheet list and formula count with openpyxl
 > alone — so it runs on Linux CI — and, where Excel is installed, opens the
@@ -330,7 +335,7 @@ entrepreneur-business-intelligence-cfo/
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
 │   ├── verify_signature.py           Integrity + attribution checker
 │   ├── test_cfo_calc.py              33 calculator tests, stdlib unittest
-│   └── test_workbook_excel.py        10 workbook tests, incl. real Excel
+│   └── test_workbook_excel.py        12 workbook tests, incl. real Excel
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in

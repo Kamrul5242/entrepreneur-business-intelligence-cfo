@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 """Build the premium multi-currency CFO dashboard workbook.
 
-KNOWN ISSUE: under openpyxl 3.1.5 the workbook this writes cannot be opened by
-Excel 16.0.20326 - not even in repair mode. Reproduced with the unmodified
-original version of this script, so it is not caused by the Trend or Start Here
-sheets. ALWAYS open the output in Excel before shipping it. The committed
-workbook is the original build, which opens correctly; do not overwrite it with
-an unverified rebuild."""
+Deterministic: two runs of this script produce byte-identical files, so the
+committed workbook can be reproduced from source and checked against
+SIGNATURE.json. That requires normalising the archive - an .xlsx is a ZIP, and
+both the ZIP entry timestamps and the document's own modified date otherwise
+change on every run.
+
+Verify a rebuild before shipping it:
+
+    python3 scripts/build_dashboard.py -o /tmp/rebuild.xlsx
+    CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
+
+Font names must be a SINGLE family - no CSS-style stacks. A comma in a font
+name makes Excel refuse to open the workbook outright, which is a defect this
+project shipped once; scripts/test_workbook_excel.py now guards against it.
+"""
 import argparse
 import os
 import sys
@@ -929,7 +938,54 @@ wb.properties.keywords = f"{AUTHOR}, {SIG}, CFO, dashboard, BDT, multi-currency"
 wb.properties.category = "Financial Analysis"
 wb.properties.identifier = SIG
 
+# ---- determinism ----
+# An .xlsx is a ZIP. openpyxl stamps every entry with the current time and
+# writes dcterms:modified into docProps/core.xml, so two identical builds
+# differ byte for byte. Pin both, honouring SOURCE_DATE_EPOCH when set.
+import datetime as _dt
+import zipfile as _zip
+
+_epoch = os.environ.get("SOURCE_DATE_EPOCH")
+if _epoch:
+    _stamp = _dt.datetime.utcfromtimestamp(int(_epoch))
+else:
+    _stamp = _dt.datetime(2026, 8, 27, 0, 0, 0)
+wb.properties.created = _stamp
+wb.properties.modified = _stamp
+
 out = ARGS.output
 wb.save(out)
+
+
+def _normalise_archive(path, stamp):
+    """Rewrite the ZIP with fixed timestamps, preserving entry order."""
+    import re as _re
+    tmp = path + ".normalising"
+    iso = stamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+    with _zip.ZipFile(path) as zin:
+        entries = [(i.filename, zin.read(i.filename)) for i in zin.infolist()]
+    # openpyxl stamps dcterms:modified with the wall clock at save time,
+    # overriding whatever was set on the properties object.
+    fixed = []
+    for name, data in entries:
+        if name == "docProps/core.xml":
+            text = data.decode("utf-8")
+            text = _re.sub(r"(<dcterms:(?:created|modified)[^>]*>)[^<]*(</)",
+                           lambda m: m.group(1) + iso + m.group(2), text)
+            data = text.encode("utf-8")
+        fixed.append((name, data))
+    entries = fixed
+    dt = (stamp.year, stamp.month, stamp.day,
+          stamp.hour, stamp.minute, stamp.second)
+    with _zip.ZipFile(tmp, "w", _zip.ZIP_DEFLATED) as zout:
+        for name, data in entries:
+            info = _zip.ZipInfo(name, date_time=dt)
+            info.compress_type = _zip.ZIP_DEFLATED
+            info.external_attr = 0o600 << 16
+            zout.writestr(info, data)
+    os.replace(tmp, path)
+
+
+_normalise_archive(out, _stamp)
 print("saved:", out)
 print("sheets:", wb.sheetnames)

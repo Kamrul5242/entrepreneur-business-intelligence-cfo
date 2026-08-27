@@ -10,7 +10,7 @@ abstract: >-
   runs a fixed Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test,
   Recommend pipeline on every financial question rather than reciting ratio
   definitions, offloads arithmetic to a deterministic Python calculator,
-  ships a 90-formula live Excel dashboard, and defaults to Bangladeshi Taka
+  ships a 161-formula live Excel dashboard, and defaults to Bangladeshi Taka
   with support for 34 currencies and South Asian lakh/crore digit grouping.
   Includes a SHA-256 signed integrity manifest and is portable across
   Claude, OpenAI Custom GPTs, Cursor, Windsurf, GitHub Copilot, Gemini Gems,

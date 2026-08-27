@@ -1,6 +1,6 @@
 # Entrepreneur Business Intelligence & CFO
 
-> An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 90-formula live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
+> An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 161-formula 7-sheet live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
 
 Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.0. Signature: MKH-EBIC-2.2.0, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
 
@@ -11,7 +11,7 @@ This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (comp
 - [SKILL.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SKILL.md): The router. Token-budget policy, workflow, hard rules (never fabricate a number, never hide a loss), priority ladder (survival before growth), currency defaults.
 - [README.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/README.md): What the skill is, why it differs from a generic "act as a CFO" prompt, install instructions per platform.
 - [CHANGELOG.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/CHANGELOG.md): Version history, including the specific v1.0 errors corrected in v2.0 (missing liquidity/solvency formulas, undefined LTV, inconsistent margin denominators).
-- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of all 30 files, for tamper detection.
+- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of every file in the repository (40 at v2.2.0), for tamper detection.
 - [LICENSE](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/LICENSE): MIT.
 
 ## Reference library (loaded on demand, 1-3 files per question)
@@ -27,11 +27,14 @@ This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (comp
 
 ## Tools
 
-- [scripts/cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/cfo_calc.py): 10-command deterministic calculator (margins, unit economics, CAC, ROAS, runway, cash conversion cycle, NPV, loan/EMI, dilution, price-sensitivity testing). Standard library only, no dependencies.
-- [scripts/build_dashboard.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/build_dashboard.py): Reproducibly builds the Excel dashboard via openpyxl.
+- [scripts/cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/cfo_calc.py): 13-command deterministic calculator — margins, unit economics, CAC, ROAS, runway, cash conversion cycle, NPV/IRR, loan/EMI/DSCR, dilution, price-sensitivity testing, indirect-method cash flow, inventory (turnover, GMROI, reorder point, EOQ, stockout cost), and `intake`, which reads a filled intake CSV and runs the whole chain in one call. Standard library only, no dependencies.
+- [scripts/build_dashboard.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/build_dashboard.py): Builds the Excel dashboard via openpyxl. Deterministic — two runs produce byte-identical files, so the committed workbook can be reproduced from source and checked against SIGNATURE.json.
+- [scripts/test_cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/test_cfo_calc.py): 33 regression tests over the three worked examples, the intake sheet end to end, and business-invalid input.
+- [scripts/test_workbook_excel.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/test_workbook_excel.py): 12 workbook tests. Structural checks run anywhere; where Excel is installed it opens the workbook, recalculates every formula, and cross-checks Excel's figures against cfo_calc.py. Also asserts the build is reproducible.
 - [scripts/verify_signature.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/verify_signature.py): Verifies every file against SIGNATURE.json; reports VERIFIED or TAMPERED with file-level detail.
-- [assets/cfo-premium-dashboard.xlsx](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/cfo-premium-dashboard.xlsx): 5-sheet live Excel dashboard, 90 formulas, zero hardcoded results, 34-currency dropdown, automatic root-cause verdict.
-- [assets/business-data-intake-template.csv](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/business-data-intake-template.csv): 53-line structured intake sheet for founders to fill before analysis.
+- [assets/cfo-premium-dashboard.xlsx](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/cfo-premium-dashboard.xlsx): 7-sheet live Excel dashboard, 161 formulas, zero hardcoded results, 34-currency dropdown, automatic root-cause verdict. Sheets: Start Here (a plain-language guide asking for eight numbers), Setup, Dashboard, Scenarios, Trend (12 months side by side), Ref, Signature.
+- [assets/business-data-intake-template.csv](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/business-data-intake-template.csv): 54-line structured intake sheet for founders to fill before analysis. Feed it to `cfo_calc.py intake --file` for a full analysis in one call.
+- [assets/business-data-intake-example.csv](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/assets/business-data-intake-example.csv): the same sheet filled with worked example 1, which `intake` reproduces exactly.
 
 ## Install
 

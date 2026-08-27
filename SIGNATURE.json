@@ -19,13 +19,13 @@
       "signed": false
     },
     "CHANGELOG.md": {
-      "sha256": "58dcdefcb0141e92e642de3e776ab8b82d6c1de569e6e4cab6ee47d29cd331f2",
-      "bytes": 16314,
+      "sha256": "2caf315cbb380a5aab8b171b6e27b32a5f964424eb1b00e13028a3b36dc332ac",
+      "bytes": 17534,
       "signed": true
     },
     "CITATION.cff": {
-      "sha256": "63de382e15b9d105718c55e35dfd872e93e8d23ee8a720a4111dc8e19fc25892",
-      "bytes": 1635,
+      "sha256": "453ea27687de26ce9fc1cfd02491562db1a77a5b4833ca2e2c82a8122a352e3e",
+      "bytes": 1636,
       "signed": true
     },
     "LICENSE": {
@@ -34,8 +34,8 @@
       "signed": true
     },
     "README.md": {
-      "sha256": "46b7e4a0cafabde117c49c45ec4816b421239194b2ad8d5f6819c54049d83fde",
-      "bytes": 14235,
+      "sha256": "ff10dd2ad45878e505bc38c362ee46c334acab0a4098fa19e3fccd39141e3d87",
+      "bytes": 14533,
       "signed": true
     },
     "SKILL.md": {
@@ -44,13 +44,13 @@
       "signed": true
     },
     "llms.txt": {
-      "sha256": "cb305cc570e2b110b4a781c481def59c68fa4a6049c3e976cf5fc6c0418ad61b",
-      "bytes": 6687,
+      "sha256": "cea51e3d56a1390380083f5361e184321e712d8c24d67e0e7f6a9337b306540e",
+      "bytes": 8126,
       "signed": true
     },
     "requirements.txt": {
-      "sha256": "4dc7a024f57738ba463270dfb531d09b56e878740024a4de1c492609b12db6fd",
-      "bytes": 1074,
+      "sha256": "81c273706a35505878c2cf6e3b65ba8a694d54cfc370e063da5b5dd37dca35ef",
+      "bytes": 1332,
       "signed": true
     },
     "assets/business-data-intake-example.csv": {
@@ -64,8 +64,8 @@
       "signed": true
     },
     "assets/cfo-premium-dashboard.xlsx": {
-      "sha256": "5908cc0a7f8e4a7d21ff23abd1efd226673a62cfb2a910b251396fb5b9c0ca88",
-      "bytes": 27084,
+      "sha256": "9567b0c943b57a62d23a0eb6db1ae0451b24d679b63afb8e6f8791139f3dabd3",
+      "bytes": 27080,
       "signed": true
     },
     "docs/INSTALL.md": {
@@ -184,8 +184,8 @@
       "signed": true
     },
     "scripts/build_dashboard.py": {
-      "sha256": "7f1436bdc69c02aaa094fdc3d4c203ad77722abc0616a0bf52c47a0a031f7b93",
-      "bytes": 46178,
+      "sha256": "e7fba2996dfe680c385a806d976c88c34082af2a35a130ff9edb1f9d6ef7e527",
+      "bytes": 48286,
       "signed": true
     },
     "scripts/cfo_calc.py": {
@@ -199,8 +199,8 @@
       "signed": true
     },
     "scripts/test_workbook_excel.py": {
-      "sha256": "c7f8c290635a512d70e37cea7f950800ea036eaa1ebae0c0bee95556b60afea8",
-      "bytes": 11872,
+      "sha256": "3c5db7262852eb6e2f85815393bdec995ad6448f3ff6438a7bbfb400abccd5ff",
+      "bytes": 14036,
       "signed": true
     },
     "scripts/verify_signature.py": {

@@ -2,6 +2,26 @@
 
 ## 2.2.0 — 2026-08-27
 
+### Fixed — documentation drift outside README
+- `llms.txt` and `CITATION.cff` still described a 5-sheet, 90-formula workbook
+  and a 10-command calculator. `llms.txt` is the file AI crawlers read, so
+  automated reviewers kept reporting the old figures long after README was
+  corrected — the drift was real, not a stale cache. Both now match the
+  shipped artifact, and `llms.txt` lists the test scripts, the intake example
+  and the current command set.
+- `build_dashboard.py` still carried a KNOWN ISSUE docstring saying its own
+  output could not be opened by Excel. That was fixed in this release; the
+  docstring now documents determinism and the font-name constraint instead.
+
+### Added — the workbook build is reproducible
+- Two runs of `build_dashboard.py` now produce byte-identical files, so the
+  committed workbook can be rebuilt from source and still verify against
+  `SIGNATURE.json`. An `.xlsx` is a ZIP: entry timestamps and the
+  `dcterms:modified` field openpyxl writes at save time are both pinned.
+  `SOURCE_DATE_EPOCH` overrides the fixed stamp.
+- Two new tests enforce it: one asserts two builds are byte-identical, the
+  other asserts a rebuild reproduces the committed workbook exactly.
+
 ### Added — automated Excel testing
 - New `scripts/test_workbook_excel.py`, 10 tests in two layers. The structural
   layer uses openpyxl only and runs anywhere: it rejects font names that are

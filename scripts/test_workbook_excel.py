@@ -76,6 +76,15 @@ EXAMPLE_INPUTS = {
 }
 
 
+def _sha256(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def _openpyxl():
     try:
         from openpyxl import load_workbook
@@ -301,6 +310,51 @@ class ExcelEngine(unittest.TestCase):
         self.assertNotEqual(
             font_colour, fill_colour,
             "status pill text and background are the same colour")
+
+
+class Reproducibility(unittest.TestCase):
+    """The committed workbook must be reproducible from source.
+
+    An .xlsx is a ZIP: entry timestamps and dcterms:modified change on every
+    run unless they are pinned, which made the artifact impossible to verify
+    against its own manifest after a rebuild.
+    """
+
+    BUILDER = os.path.join(HERE, "build_dashboard.py")
+
+    def _build(self, dest):
+        import subprocess
+        r = subprocess.run([sys.executable, self.BUILDER, "-o", dest, "--force"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            self.skipTest("builder failed (openpyxl missing?): %s"
+                          % r.stderr.strip().splitlines()[-1:])
+        return _sha256(dest)
+
+    def test_two_builds_are_byte_identical(self):
+        import tempfile
+        d = tempfile.mkdtemp()
+        a = self._build(os.path.join(d, "a.xlsx"))
+        b = self._build(os.path.join(d, "b.xlsx"))
+        shutil.rmtree(d, ignore_errors=True)
+        self.assertEqual(a, b, "the builder is not deterministic")
+
+    def test_rebuild_matches_the_committed_workbook(self):
+        """Strict on purpose. If this fails, either the workbook was edited by
+        hand or openpyxl is not the pinned version in requirements.txt."""
+        import tempfile
+        if os.environ.get("CFO_WORKBOOK"):
+            self.skipTest("CFO_WORKBOOK overrides the committed artifact")
+        committed = os.path.join(ROOT, "assets", "cfo-premium-dashboard.xlsx")
+        if not os.path.exists(committed):
+            self.skipTest("committed workbook not present")
+        d = tempfile.mkdtemp()
+        built = self._build(os.path.join(d, "rebuild.xlsx"))
+        shutil.rmtree(d, ignore_errors=True)
+        self.assertEqual(
+            built, _sha256(committed),
+            "a rebuild does not reproduce the committed workbook; check that "
+            "openpyxl matches the pin in requirements.txt")
 
 
 if __name__ == "__main__":

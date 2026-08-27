@@ -12,9 +12,14 @@
 #
 #   python3 -m pip install -r requirements.txt
 
-# WARNING: under 3.1.5, running build_dashboard.py produces a workbook Excel
-# refuses to open. Never ship a rebuild without opening it in Excel first.
-# See the Known issue box in README.md.
+# The pin matters for reproducibility: openpyxl changes archive layout between
+# releases, so a different version produces a different SHA-256 for identical
+# content and scripts/test_workbook_excel.py will report that a rebuild no
+# longer matches the committed workbook.
+#
+# Verify any rebuild before shipping it:
+#   python3 scripts/build_dashboard.py -o /tmp/rebuild.xlsx
+#   CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
 openpyxl==3.1.5
 
 # Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.0
