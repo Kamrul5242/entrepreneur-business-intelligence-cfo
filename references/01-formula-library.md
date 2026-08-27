@@ -28,27 +28,53 @@ percent; in downstream formulas always use the decimal form.
 
 ## 1. Income statement
 
+This chain is the canonical one. `scripts/pl_model.py` defines it; the block
+below is validated against that definition by
+`scripts/test_reference_consistency.py`, which evaluates both on random inputs
+and fails if they ever disagree. Do not edit one without the other.
+
+<!-- canonical-bridge:start -->
 ```
-Gross Revenue
-− Returns, refunds, discounts, allowances
-= Net Revenue                     ← use this as the denominator for ALL margins
-− COGS
-= Gross Profit
-− Operating Expenses (incl. marketing, salaries, rent, software, D&A)
-= Operating Profit (EBIT)
-− Interest
-= Pre-tax Profit (EBT)
-− Tax
-= Net Profit
+Net Revenue        = Gross Revenue − Returns − Discounts
+Gross Profit       = Net Revenue − COGS
+Contribution       = Gross Profit − Variable Costs
+Operating Profit   = Contribution − Ad Spend − Fixed OpEx − D&A
+EBITDA             = Operating Profit + D&A
+Pre-tax Profit     = Operating Profit − Interest
+Net Profit         = Pre-tax Profit − Tax
 ```
+<!-- canonical-bridge:end -->
 
 **Denominator discipline:** this skill uses **Net Revenue** for every margin.
 If the user only supplies gross revenue, say so and label margins as
 "gross-revenue basis".
 
-**COGS includes:** product/material cost, inbound freight, duty, direct labour,
-manufacturing, per-unit packaging, payment processing where treated as direct.
-**COGS excludes:** advertising, salaries of non-production staff, rent, software.
+### Cost classification — every cost belongs to exactly one bucket
+
+There is no "treat it as direct if you prefer" option. A cost placed in two
+buckets is subtracted twice, and a cost in no bucket turns a loss into a
+profit. This table is the classification; the intake template mirrors it.
+
+<!-- canonical-buckets:start -->
+| Term | Intake section | Line items |
+|---|---|---|
+| `COGS` | COGS | Product / Material Cost, Inbound Freight, Duty & Clearing, Direct Labour, Packaging |
+| `VARIABLE` | VARIABLE | Outbound Shipping, Payment Gateway Fees, Marketplace Commission, RTO / Failed Delivery Cost |
+| `AD_SPEND` | OPEX | Advertising Spend |
+| `FIXED_OPEX` | OPEX | Salaries (non-production), Owner Compensation, Rent, Software & Subscriptions, Utilities, Professional Fees, Other Operating |
+| `DNA` | OPEX | Depreciation & Amortization |
+| `BELOW_LINE` | BELOW_LINE | Interest Expense, Tax |
+<!-- canonical-buckets:end -->
+
+**The trap:** `VARIABLE` is the bucket founders forget. Outbound shipping,
+payment gateway fees, marketplace commission and RTO routinely total 15%% of
+net revenue in COD e-commerce. Omitting them, and leaving ad spend out of the
+chain, is precisely how the worked example in `06-worked-examples.md` would
+read as **+৳228,000** instead of its true **−৳160,750**.
+
+**Note on placement:** packaging is `COGS`, not `VARIABLE`. Payment processing
+is `VARIABLE`, not `COGS`. Product cost is LANDED — ex-factory plus inbound
+freight plus duty and clearing.
 
 ---
 
@@ -116,20 +142,21 @@ crosses zero.
 Gross Profit        = Net Revenue − COGS
 Gross Margin %      = Gross Profit / Net Revenue × 100
 
-Contribution Margin = Net Revenue − ALL Variable Costs
+Contribution        = Gross Profit − Variable Costs
 CM per unit         = Price per unit − Variable Cost per unit
-CM Ratio            = Contribution Margin / Net Revenue
+CM Ratio            = Contribution / Net Revenue
 
-Operating Profit    = Gross Profit − Operating Expenses
+Operating Profit    = Contribution − Ad Spend − Fixed OpEx − D&A
 Operating Margin %  = Operating Profit / Net Revenue × 100
 
 Net Margin %        = Net Profit / Net Revenue × 100
 ```
 
 **Gross margin vs contribution margin** — the most commonly confused pair.
-Gross margin subtracts COGS only. Contribution margin subtracts *every* cost
-that scales with a sale: COGS **plus** ad cost, payment fees, shipping,
-marketplace commission, refund provision, packaging.
+Gross margin subtracts COGS only. Contribution additionally subtracts the
+`VARIABLE` bucket — outbound shipping, payment gateway fees, marketplace
+commission and RTO. Ad spend is subtracted after contribution, not inside it,
+because break-even ROAS is measured against contribution before ads.
 
 For any e-commerce or ads-driven business, **contribution margin after ads is
 the number that decides whether to scale.** Gross margin will lie to you.
@@ -145,9 +172,14 @@ EBIT   = Operating Profit
 EBITDA = EBIT + Depreciation + Amortization
 ```
 
-**Condition:** this is only correct when D&A is included inside operating
-expenses. If D&A sits below the operating line in the user's format, EBITDA
-= Operating Profit, and you must say so.
+**D&A convention — unconditional.** In this skill D&A is always an
+operating cost: it is subtracted to reach operating profit and added back to
+reach EBITDA. `cfo_calc.py`, the workbook and every platform adapter follow
+this. There is no variant where EBITDA equals operating profit.
+
+Because D&A is its own term in the bridge, `Fixed OpEx` never contains it. In
+`cfo_calc.py margins`, pass D&A through `--depreciation` / `--amortization`
+and keep it out of `--opex`, or it is subtracted twice.
 
 Alternative build-up:
 ```

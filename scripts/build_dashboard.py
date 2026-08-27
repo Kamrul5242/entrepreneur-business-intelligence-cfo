@@ -51,7 +51,7 @@ from openpyxl.chart import BarChart, LineChart, Reference
 from openpyxl.formatting.rule import CellIsRule, DataBarRule
 from openpyxl.comments import Comment
 
-SIG = "MKH-EBIC-2.2.1"
+SIG = "MKH-EBIC-2.2.2"
 AUTHOR = "Md Kamrul Hasan"
 GH = "https://github.com/Kamrul5242"
 
@@ -752,7 +752,7 @@ sg.sheet_view.showGridLines = False
 for k,v in {"A":26,"B":62}.items(): sg.column_dimensions[k].width=v
 banner(sg,1,"DIGITAL SIGNATURE  ·  DO NOT MODIFY",span=2)
 meta=[("Author",AUTHOR),("GitHub",GH),("Skill","entrepreneur-business-intelligence-cfo"),
-      ("Version","2.2.1"),("Signature ID",SIG),("License","MIT — attribution required"),
+      ("Version","2.2.2"),("Signature ID",SIG),("License","MIT — attribution required"),
       ("Default currency","BDT (all 34 supported)"),
       ("Notice","This workbook and its formula design are the work of "
                 "Md Kamrul Hasan. The MIT License permits reuse and modification "

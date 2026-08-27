@@ -2,7 +2,7 @@
 
 > An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 161-formula 7-sheet live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
 
-Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.1. Signature: MKH-EBIC-2.2.1, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
+Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.2. Signature: MKH-EBIC-2.2.2, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
 
 This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (compact core fits the 8,000-character instruction cap), a Cursor `.mdc` rule, a Windsurf rule, GitHub Copilot instructions, a Gemini Gem, an `AGENTS.md` file, or a raw system prompt.
 
@@ -11,7 +11,7 @@ This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (comp
 - [SKILL.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SKILL.md): The router. Token-budget policy, workflow, hard rules (never fabricate a number, never hide a loss), priority ladder (survival before growth), currency defaults.
 - [README.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/README.md): What the skill is, why it differs from a generic "act as a CFO" prompt, install instructions per platform.
 - [CHANGELOG.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/CHANGELOG.md): Version history, including the specific v1.0 errors corrected in v2.0 (missing liquidity/solvency formulas, undefined LTV, inconsistent margin denominators).
-- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of every file in the repository (40 at v2.2.1), for tamper detection.
+- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of every file in the repository (40 at v2.2.2), for tamper detection.
 - [LICENSE](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/LICENSE): MIT.
 
 ## Reference library (loaded on demand, 1-3 files per question)
@@ -27,6 +27,7 @@ This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (comp
 
 ## Tools
 
+- [scripts/pl_model.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/pl_model.py): The canonical profit-and-loss definition — cost classification and the P&L bridge in one machine-readable place. The calculator computes with it, and the formula reference is validated against it, so documentation cannot drift away from the implementation.
 - [scripts/cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/cfo_calc.py): 13-command deterministic calculator — margins, unit economics, CAC, ROAS, runway, cash conversion cycle, NPV/IRR, loan/EMI/DSCR, dilution, price-sensitivity testing, indirect-method cash flow, inventory (turnover, GMROI, reorder point, EOQ, stockout cost), and `intake`, which reads a filled intake CSV and runs the whole chain in one call. Standard library only, no dependencies.
 - [scripts/build_dashboard.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/build_dashboard.py): Builds the Excel dashboard via openpyxl. Deterministic — two runs produce byte-identical files, so the committed workbook can be reproduced from source and checked against SIGNATURE.json.
 - [scripts/test_cfo_calc.py](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/scripts/test_cfo_calc.py): 57 regression tests over the three worked examples, the intake sheet end to end, depreciation consistency across engines, runway cash basis, mixed-currency refusal, and business-invalid input.

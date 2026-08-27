@@ -41,7 +41,10 @@ import math
 import statistics
 import sys
 
-SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.1"
+# The P&L bridge lives in exactly one place. Do not restate it here.
+import pl_model
+
+SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.2"
 
 
 # ---------- helpers ----------
@@ -75,19 +78,20 @@ def margins(a):
     gp = net_rev - a.cogs
     var = a.variable or 0
     ads = a.adspend or 0
-    # D&A is an operating cost. It must be subtracted here, exactly as
-    # `intake` does and as the workbook does (Dashboard operating profit
-    # subtracts TOTAL OPEX, which includes the D&A row). --opex is documented
-    # as EXCLUDING D&A so the two cannot be double counted.
     dna = (a.depreciation or 0) + (a.amortization or 0)
-    # Contribution sits between gross profit and operating profit: it is what
-    # remains after every cost that scales with an order, before ads and
-    # before fixed overhead.
-    contribution = gp - var
-    op = contribution - ads - (a.opex or 0) - dna
-    ebitda = op + dna
-    ebt = op - (a.interest or 0)
-    net = ebt - (a.tax or 0)
+    # Every figure below comes from pl_model.BRIDGE, the single canonical
+    # definition. Nothing here re-derives the P&L.
+    b = pl_model.evaluate(**{
+        "Gross Revenue": a.revenue, "Returns": a.returns or 0, "Discounts": 0,
+        "COGS": a.cogs, "Variable Costs": var, "Ad Spend": ads,
+        "Fixed OpEx": a.opex or 0, "D&A": dna,
+        "Interest": a.interest or 0, "Tax": a.tax or 0,
+    })
+    contribution = b["Contribution"]
+    op = b["Operating Profit"]
+    ebitda = b["EBITDA"]
+    ebt = b["Pre-tax Profit"]
+    net = b["Net Profit"]
     out = {
         "gross_revenue": _r(a.revenue),
         "returns": _r(a.returns or 0),
@@ -503,11 +507,20 @@ def intake(a):
     interest = _row(rows, "BELOW_LINE", "interest") or 0.0
     tax = _row(rows, "BELOW_LINE", "tax") or 0.0
 
-    net_rev = gross - returns
-    gp = net_rev - cogs
-    contribution = gp - var
-    op = contribution - ads - opex - dna
-    net = op - interest - tax
+    # Same canonical bridge the `margins` command uses. When these two
+    # disagreed on depreciation in v2.2.0 it was because each restated the
+    # arithmetic separately; now neither does.
+    b = pl_model.evaluate(**{
+        "Gross Revenue": gross, "Returns": returns, "Discounts": 0,
+        "COGS": cogs, "Variable Costs": var, "Ad Spend": ads,
+        "Fixed OpEx": opex, "D&A": dna,
+        "Interest": interest, "Tax": tax,
+    })
+    net_rev = b["Net Revenue"]
+    gp = b["Gross Profit"]
+    contribution = b["Contribution"]
+    op = b["Operating Profit"]
+    net = b["Net Profit"]
 
     pl = {
         "gross_revenue": _r(gross),

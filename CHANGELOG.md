@@ -1,5 +1,61 @@
 # Changelog
 
+## 2.2.2 — 2026-08-27
+
+A reference-integrity release. No new capability.
+
+### Fixed — the formula reference still taught the superseded P&L (HIGH)
+- `SKILL.md` routes every formula question to
+  `references/01-formula-library.md`, and that file still stated
+  `Operating Profit = Gross Profit − Operating Expenses`, with the income
+  statement listing operating expenses as "marketing, salaries, rent,
+  software, D&A" and never mentioning outbound shipping, payment gateway
+  fees, marketplace commission or RTO. A model following it computed the
+  pre-v2.2.0 chain — the one that reported **+৳228,000** for the worked
+  example that actually loses **৳160,750**. The v2.2.1 release corrected the
+  calculator and all seven platform adapters but changed no file under
+  `references/`.
+- The same file kept the obsolete conditional "this is only correct when D&A
+  is included inside operating expenses… otherwise EBITDA = Operating
+  Profit", which v2.2.1 had already removed from the adapters. D&A is now
+  documented as unconditionally an operating cost.
+- Section 4 defined contribution against "ALL Variable Costs" without saying
+  whether COGS was inside that set. It now reads
+  `Contribution = Gross Profit − Variable Costs`, matching the code.
+- Removed the phrase "payment processing where treated as direct" from the
+  COGS definition. That optional treatment is exactly what allows a cost to
+  be counted in two buckets. Payment processing is `VARIABLE`; packaging is
+  `COGS`; there is no longer a choice.
+
+### Added — one canonical definition (`scripts/pl_model.py`)
+- The P&L bridge and the cost classification now live in a single
+  machine-readable module. `cfo_calc.py` **computes with it** rather than
+  restating it: both `margins` and `intake` call `pl_model.evaluate`, so the
+  duplicated arithmetic that let them disagree about depreciation in v2.2.0
+  no longer exists.
+- Every cost belongs to exactly one bucket — COGS, VARIABLE, AD_SPEND,
+  FIXED_OPEX, DNA, BELOW_LINE — and a test asserts no line item appears
+  twice.
+
+### Added — a drift guard that is semantic, not prose matching
+- `scripts/test_reference_consistency.py` parses the canonical bridge out of
+  the formula reference and **evaluates it on random inputs** against
+  `pl_model`. Rewording the documentation is free; changing its arithmetic
+  fails a test. It also checks the documented cost buckets against the model
+  and against the intake template, and checks that all seven platform
+  adapters subtract ad spend, fixed opex and D&A when stating operating
+  profit.
+- Demonstrated to fail before it was accepted: against the v2.2.1 reference
+  it reports four failures including the obsolete D&A wording; against a
+  `pl_model` with D&A removed from operating profit it reports a numeric
+  disagreement of 116,822 rather than a text mismatch.
+
+### Known limitation
+- The workbook mirrors the bridge in Excel formulas and cannot import
+  `pl_model`. It is checked by equality of results instead: the workbook
+  tests drive Excel and compare its Dashboard figures against `cfo_calc` on
+  identical inputs, including non-zero depreciation.
+
 ## 2.2.1 — 2026-08-27
 
 A correctness and reliability release. No new capability.
