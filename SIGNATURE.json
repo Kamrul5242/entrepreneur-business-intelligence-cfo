@@ -6,7 +6,7 @@
   "signature": "MKH-EBIC-2.2.0",
   "license": "MIT — attribution required in all copies",
   "notice": "This manifest records a SHA-256 hash of every file at publication. Any modification changes the hash and is detected by verify_signature.py. Removing the attribution does not remove the author's rights under the MIT License.",
-  "file_count": 39,
+  "file_count": 40,
   "files": {
     ".gitattributes": {
       "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
@@ -19,8 +19,8 @@
       "signed": false
     },
     "CHANGELOG.md": {
-      "sha256": "f9af13af31f295989f1928738bddd87128ba446d9d3b7cee84dd5a7c8a6b7bdd",
-      "bytes": 15226,
+      "sha256": "58dcdefcb0141e92e642de3e776ab8b82d6c1de569e6e4cab6ee47d29cd331f2",
+      "bytes": 16314,
       "signed": true
     },
     "CITATION.cff": {
@@ -34,8 +34,8 @@
       "signed": true
     },
     "README.md": {
-      "sha256": "128f1198f1523f3b09512ed2f1edc15c2c9a908a435342bc03b5cfffe47468cf",
-      "bytes": 13417,
+      "sha256": "46b7e4a0cafabde117c49c45ec4816b421239194b2ad8d5f6819c54049d83fde",
+      "bytes": 14235,
       "signed": true
     },
     "SKILL.md": {
@@ -49,8 +49,8 @@
       "signed": true
     },
     "requirements.txt": {
-      "sha256": "22896e482c6a932668bbed5bfd3610f63638f11c71b4ca0c778658b6a26a51fa",
-      "bytes": 907,
+      "sha256": "4dc7a024f57738ba463270dfb531d09b56e878740024a4de1c492609b12db6fd",
+      "bytes": 1074,
       "signed": true
     },
     "assets/business-data-intake-example.csv": {
@@ -196,6 +196,11 @@
     "scripts/test_cfo_calc.py": {
       "sha256": "619b6acf98e36a0d6c6f78da55c1c8d5d20ff962cf3ea98efc60e83feadc42ae",
       "bytes": 10528,
+      "signed": true
+    },
+    "scripts/test_workbook_excel.py": {
+      "sha256": "c7f8c290635a512d70e37cea7f950800ea036eaa1ebae0c0bee95556b60afea8",
+      "bytes": 11872,
       "signed": true
     },
     "scripts/verify_signature.py": {

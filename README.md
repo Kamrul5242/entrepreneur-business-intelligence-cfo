@@ -195,6 +195,13 @@ directly and edit the yellow cells.
 > produced a workbook Excel refused to open at all, in repair mode included.
 > The shipped binary predated that line, which is why the fault stayed hidden.
 > It is now `Nirmala UI`, and the rebuild is verified by opening it in Excel.
+>
+> `scripts/test_workbook_excel.py` guards against a repeat. It checks font
+> names, conditional-format fills, sheet list and formula count with openpyxl
+> alone — so it runs on Linux CI — and, where Excel is installed, opens the
+> workbook, recalculates every formula, and compares Excel's answers against
+> `cfo_calc.py` on the same inputs. Both regression guards were verified by
+> reintroducing the original bugs and confirming the tests fail.
 
 
 ```bash
@@ -211,6 +218,11 @@ python3 scripts/cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.33
 
 # regression tests — asserts the calculator agrees with 06-worked-examples.md
 python3 scripts/test_cfo_calc.py
+
+# workbook tests — structure anywhere, plus real Excel where it is installed.
+# Point them at a fresh rebuild, which is the case that actually regresses:
+python3 scripts/build_dashboard.py -o /tmp/rebuild.xlsx
+CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
 
 # one command for the whole picture: fill the CSV, then
 python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.csv
@@ -317,7 +329,8 @@ entrepreneur-business-intelligence-cfo/
 │   ├── cfo_calc.py                   13-command calculator, stdlib only
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
 │   ├── verify_signature.py           Integrity + attribution checker
-│   └── test_cfo_calc.py              33 regression tests, stdlib unittest
+│   ├── test_cfo_calc.py              33 calculator tests, stdlib unittest
+│   └── test_workbook_excel.py        10 workbook tests, incl. real Excel
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in

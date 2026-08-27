@@ -18,3 +18,7 @@
 openpyxl==3.1.5
 
 # Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.0
+
+# Optional, Windows only. Needed by scripts/test_workbook_excel.py to drive
+# real Excel. Without it those tests skip; the structural half still runs.
+# pywin32==312

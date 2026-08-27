@@ -2,6 +2,22 @@
 
 ## 2.2.0 — 2026-08-27
 
+### Added — automated Excel testing
+- New `scripts/test_workbook_excel.py`, 10 tests in two layers. The structural
+  layer uses openpyxl only and runs anywhere: it rejects font names that are
+  not a single family, rejects conditional-format fills that omit `bgColor`,
+  and pins the sheet list and formula count. The engine layer drives real Excel
+  through COM, recalculates every formula, asserts no cell evaluates to an
+  error, and cross-checks Excel's Dashboard figures against `cfo_calc.py` on
+  identical inputs — two independent implementations agreeing on −৳160,750.
+- Both regression guards were validated by reintroducing the original bugs:
+  the font-stack build fails the name check *and* Excel refuses to open it, and
+  the `fgColor` build fails both the styles-XML check and an Excel
+  `DisplayFormat` check showing the status pill is white text on white.
+- `CFO_WORKBOOK` points the tests at any workbook, so a rebuild can be verified
+  before it is committed. `openpyxl` reports `dxf.fill` as `None` on read, so
+  the fill check reads `xl/styles.xml` directly.
+
 ### Fixed — the workbook could not be rebuilt at all
 - `SYMFONT` was `"Noto Sans,FreeSans,Arial Unicode MS,Arial"` — a CSS-style font
   stack. An Excel font name must be a single family of at most 31 characters and
