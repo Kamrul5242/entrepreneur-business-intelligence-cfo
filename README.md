@@ -10,7 +10,7 @@
 [![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
 [![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.0-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
-[![Formulas](https://img.shields.io/badge/dashboard-90%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
+[![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
 **Author: [Md Kamrul Hasan](https://github.com/Kamrul5242)**
 
@@ -38,11 +38,20 @@ math with real formulas instead of prose.
 
 ## Screenshots
 
+### Start Here — the sheet that opens first
+
+![Start Here](docs/screenshots/00-start-here.png)
+
+*Eight numbers, in plain words, with where to find each one. English and
+Bangla. You are not asked to understand accounting.*
+
 ### Executive Dashboard — live KPIs, RED/GREEN status, auto-diagnosis
 
 ![Executive Dashboard](docs/screenshots/02-dashboard.png)
 
-*90 formulas, 0 recalculation errors. The verdict banner is itself a formula —
+*161 formulas across 7 sheets, 0 recalculation errors — verified by opening
+the workbook in Excel and rebuilding every formula. The verdict banner is
+itself a formula —
 it names the **root cause** (broken unit economics vs. overhead drag vs.
 healthy), not just "profit is negative."*
 
@@ -53,6 +62,14 @@ healthy), not just "profit is negative."*
 *Yellow = your input. Everything else is a formula. Pick any currency and
 every symbol in the workbook updates.*
 
+### 12-Month Trend — is it actually getting better?
+
+![12-Month Trend](docs/screenshots/06-trend.png)
+
+*One column per month. Contribution, operating profit, cumulative profit and
+month-on-month growth, with a revenue-versus-profit chart. A single month
+cannot tell you whether a business is improving.*
+
 ### Scenario Model — Conservative / Base / Aggressive, live
 
 ![Scenario Model](docs/screenshots/03-scenarios.png)
@@ -60,7 +77,8 @@ every symbol in the workbook updates.*
 *Edit the yellow drivers, watch all three columns and the price-sensitivity
 table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 
-> **Note:** these screenshots match the shipped workbook exactly.
+> **Note:** every screenshot above is exported from the shipped workbook by
+> Excel itself, not mocked up.
 
 <details>
 <summary><strong>More screenshots — currency reference & signature sheet</strong></summary>
@@ -80,7 +98,7 @@ table recalculate. No copy-pasted "what-if" columns to keep in sync.*
 | Arithmetic | Model does it in its head | Offloaded to a tested Python calculator |
 | Verdict | "Looks concerning" | Names the exact root cause, in ৳/$/€, with the formula shown |
 | Currency | Assumes USD | **BDT default**, 34 currencies, lakh/crore aware |
-| Excel | None | 90-formula live dashboard, zero hardcoded numbers |
+| Excel | None | 161-formula live dashboard, guided start, 12-month trend, zero hardcoded numbers |
 | Portability | One platform | Claude, GPT, Gemini, Cursor, Copilot, AGENTS.md, raw system prompt |
 | Token cost | Loads everything | Router loads 1–3 files on demand — **~75% smaller** always-on core |
 | Provenance | None | SHA-256 signed manifest, tamper-detectable |
@@ -166,28 +184,17 @@ directly and edit the yellow cells.
 
 ## The Excel dashboard
 
-> ### Known issue — do not rebuild the workbook
+> ### Rebuilding the workbook
 >
-> `assets/cfo-premium-dashboard.xlsx` is the original build and opens correctly
-> in Excel. **Rebuilding it with openpyxl 3.1.5 produces a file Excel refuses to
-> open** ("Open method of Workbooks class failed"), even in repair mode. This was
-> reproduced with the *unmodified* original `build_dashboard.py`, so it is not
-> caused by any recent change to the script. Verified against Excel 16.0.20326:
+> `python3 scripts/build_dashboard.py --force` regenerates the workbook, then
+> re-sign it with `python3 scripts/verify_signature.py --generate`.
 >
-> | File | Opens in Excel |
-> |---|---|
-> | Shipped workbook (original build) | yes, 5 sheets |
-> | Same script rebuilt under openpyxl 3.1.5 | no |
-> | A trivial openpyxl 3.1.5 file | yes |
-> | Shipped workbook loaded and re-saved by openpyxl 3.1.5 | yes |
->
-> Ruled out so far: charts, conditional formatting, cell comments, data
-> validation, the sheet-protection password, print areas, tab colours and page
-> setup. Because the shipped file re-saves cleanly through openpyxl, the fault is
-> in what the builder *writes*, not in openpyxl's writer generally.
->
-> Until it is found, the **0. Start Here** and **4. Trend** sheets exist in
-> `scripts/build_dashboard.py` but are **not** in the shipped workbook.
+> A long-standing defect here was fixed in v2.2.0: the symbol font was set to
+> a CSS-style stack, `"Noto Sans,FreeSans,Arial Unicode MS,Arial"`. Excel font
+> names must be a **single** family — commas are illegal — so any rebuild
+> produced a workbook Excel refused to open at all, in repair mode included.
+> The shipped binary predated that line, which is why the fault stayed hidden.
+> It is now `Nirmala UI`, and the rebuild is verified by opening it in Excel.
 
 
 ```bash
@@ -211,9 +218,11 @@ python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.cs
 
 | Sheet | What's on it |
 |---|---|
+| **0. Start Here** | Plain-language guide: three steps, the eight numbers that matter and where to find them, what each sheet does, English + Bangla |
 | **1. Setup** | Every input, yellow-only, 34-currency dropdown |
 | **2. Dashboard** | KPI cards w/ RED-GREEN status · unit economics · cash & runway · liquidity & cash cycle · break-even · auto-diagnosing verdict · profit chart |
 | **3. Scenarios** | Conservative/Base/Aggressive with editable drivers + price-sensitivity table |
+| **4. Trend** | 12 months side by side — contribution, operating profit, cumulative profit, MoM growth, revenue-vs-profit chart |
 | **Ref** | 34-currency master table |
 | **Signature** | Locked, password-protected provenance record |
 
@@ -308,9 +317,9 @@ entrepreneur-business-intelligence-cfo/
 │   ├── cfo_calc.py                   13-command calculator, stdlib only
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
 │   ├── verify_signature.py           Integrity + attribution checker
-│   └── test_cfo_calc.py              20 regression tests, stdlib unittest
+│   └── test_cfo_calc.py              33 regression tests, stdlib unittest
 ├── assets/
-│   ├── cfo-premium-dashboard.xlsx    Live 5-sheet dashboard, 90 formulas
+│   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
 │   └── business-data-intake-example.csv    Worked example 1, filled
 ├── requirements.txt                  openpyxl pin (workbook only; the

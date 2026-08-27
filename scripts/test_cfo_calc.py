@@ -179,5 +179,82 @@ class EdgeCases(unittest.TestCase):
         self.assertIn("ALERT", r)
 
 
+class BusinessInvalidInputs(unittest.TestCase):
+    """A finance tool must fail loudly rather than return tidy nonsense.
+    Each of these crashed or produced a meaningless number before v2.2.0."""
+
+    def test_discount_rate_of_minus_100_pct(self):
+        r = run(["npv", "--rate", "-1", "--initial", "1000", "--flows", "100,200"])
+        self.assertIn("ERROR", r)
+
+    def test_loan_with_zero_term(self):
+        r = run(["loan", "--principal", "100000", "--annual-rate", "0.12",
+                 "--months", "0"])
+        self.assertIn("ERROR", r)
+
+    def test_dilution_with_zero_post_money(self):
+        r = run(["dilution", "--pre", "0", "--investment", "0"])
+        self.assertIn("ERROR", r)
+
+    def test_price_test_with_zero_price(self):
+        r = run(["price-test", "--price", "0", "--varcost", "10",
+                 "--increase", "0.1"])
+        self.assertIn("ERROR", r)
+
+    def test_refunds_exceeding_sales_is_flagged(self):
+        r = run(["margins", "--revenue", "100000", "--returns", "150000",
+                 "--cogs", "40000", "--variable", "0", "--adspend", "0"])
+        self.assertIn("ALERT", r)
+
+    def test_zero_revenue_is_flagged_not_divided_by(self):
+        r = run(["margins", "--revenue", "0", "--cogs", "0",
+                 "--variable", "0", "--adspend", "0"])
+        self.assertIn("ALERT", r)
+        self.assertIsNone(r["gross_margin_pct"])
+
+    def test_zero_customers_does_not_divide_by_zero(self):
+        r = run(["cac", "--spend", "1000", "--customers", "0"])
+        self.assertIsNone(r["cac"])
+
+    def test_zero_ad_spend_roas(self):
+        r = run(["roas", "--revenue", "1000", "--spend", "0", "--cm-ratio", "0.3"])
+        self.assertIsNone(r["roas"])
+
+    def test_negative_cash_runway(self):
+        r = run(["runway", "--cash", "-50000", "--burn", "1000"])
+        self.assertLess(r["runway_months"], 0)
+
+    def test_ccc_with_zero_cogs(self):
+        r = run(["ccc", "--inventory", "1000", "--ar", "1000", "--ap", "1000",
+                 "--cogs", "0", "--revenue", "0"])
+        self.assertIsNone(r["DIO_days"])
+
+    def test_inventory_with_no_usable_input(self):
+        r = run(["inventory"])
+        self.assertIn("ERROR", r)
+
+    def test_zero_price_unit_alerts(self):
+        r = run(["unit", "--price", "0", "--varcost", "50", "--fixed", "1000"])
+        self.assertIn("ALERT", r)
+
+
+class IntakeSheet(unittest.TestCase):
+    """The intake command must reproduce the worked example from the CSV."""
+
+    def test_example_csv_reproduces_worked_example(self):
+        here = os.path.dirname(os.path.abspath(__file__))
+        csv = os.path.join(here, "..", "assets", "business-data-intake-example.csv")
+        if not os.path.exists(csv):
+            self.skipTest("example intake sheet not present")
+        r = run(["intake", "--file", csv])
+        pl = r["profit_and_loss"]
+        self.assertEqual(pl["net_revenue"], 850000.0)
+        self.assertEqual(pl["contribution"], 259250.0)
+        self.assertEqual(pl["operating_profit"], -160750.0)
+        self.assertEqual(r["unit_economics"]["break_even_roas"], 3.28)
+        self.assertEqual(r["cash"]["unexplained_gap"], 0.0)
+        self.assertEqual(r["balance_sheet_check"]["difference"], 0.0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

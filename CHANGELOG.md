@@ -2,15 +2,22 @@
 
 ## 2.2.0 — 2026-08-27
 
-### Known issue
-- Rebuilding `assets/cfo-premium-dashboard.xlsx` with openpyxl 3.1.5 yields a
-  workbook Excel will not open, repair mode included. Reproduced with the
-  unmodified original builder, so it predates this release's changes. Charts,
-  conditional formatting, comments, data validation, the protection password,
-  print areas, tab colours and page setup are each ruled out. The shipped
-  binary is the original build and opens normally.
+### Fixed — the workbook could not be rebuilt at all
+- `SYMFONT` was `"Noto Sans,FreeSans,Arial Unicode MS,Arial"` — a CSS-style font
+  stack. An Excel font name must be a single family of at most 31 characters and
+  may not contain commas, so every rebuild produced a workbook Excel refused to
+  open, repair mode included. The shipped binary predated that line, so the
+  defect stayed latent until the workbook was rebuilt. Now `Nirmala UI`, which
+  also renders Bangla. Isolated by ablation: values-only rebuilds opened, and
+  re-applying fonts alone broke them again.
+- Conditional-format fills were written as `PatternFill("solid", fgColor=…)`.
+  Excel renders differential-format fills from `bgColor`, so the RED/GREEN status
+  pills on the Dashboard and Scenarios sheets were bold white text on no fill —
+  invisible since they were introduced. Now `PatternFill(bgColor=…)`.
+- The Start Here intro paragraph was styled to wrap across A:H but never merged,
+  so it wrapped inside column A and was clipped.
 
-### Added — the builder now explains itself (not yet in the shipped workbook)
+### Added — the workbook now explains itself
 - New sheet **0. Start Here**, opening first: what the workbook is, three
   steps, the eight numbers that actually matter (with plain-English meanings
   and where to find each one), a guide to every sheet, a warning that profit
@@ -41,11 +48,12 @@
   `05-ecommerce-and-inventory.md` §7 listed these; nothing computed them.
   Safety stock states its own basis, and says so plainly when it is zero
   because no variability input was given.
-- Sheets **0. Start Here** and **4. Trend** are implemented in
-  `scripts/build_dashboard.py` but are **NOT in the shipped workbook**. Any
-  rebuild under openpyxl 3.1.5 — including one from the unmodified original
-  script — produces a file Excel refuses to open, so the original workbook
-  binary ships unchanged. See the Known issue box in README.md.
+- New sheets **0. Start Here** and **4. Trend** now ship in the workbook, which
+  goes from 5 sheets / 90 formulas to 7 sheets / 161. Verified in Excel:
+  0 formula errors across all seven sheets, and Excel's own engine returns
+  contribution 259,250 and operating profit −160,750 for the worked example.
+- All seven screenshots in `docs/screenshots/` are regenerated, exported from
+  the shipped workbook by Excel itself.
 - New `requirements.txt` pinning `openpyxl==3.1.5`. The calculator and its
   tests remain standard-library only; the pin exists because openpyxl changes
   the archive layout between releases, which changes the workbook's SHA-256
@@ -112,10 +120,18 @@
   at all. Reproduces Example 2 exactly (OCF −৳85,000, net −৳555,000).
 - `roas` verdict now reads `PROFITABLE on ads (before fixed costs)` and
   carries a note that fixed overhead has not been deducted.
-- New `scripts/test_cfo_calc.py` — 20 stdlib regression tests covering the
-  three worked examples and every edge case fixed in this release. The
-  repository previously had no tests; a parser-construction test would have
-  caught the Python 3.13 crash.
+- New `scripts/test_cfo_calc.py` — 33 stdlib regression tests covering the
+  three worked examples, the intake sheet end to end, and business-invalid
+  input. The repository previously had no tests; a parser-construction test
+  would have caught the Python 3.13 crash.
+
+### Fixed — business-invalid input crashed instead of explaining
+- `npv --rate -1`, `loan --months 0`, `dilution` with a zero post-money, and
+  `price-test --price 0` all raised ZeroDivisionError or TypeError. Each now
+  returns a plain-language ERROR.
+- `margins` now ALERTs when net revenue is zero or negative — previously it
+  returned neat but meaningless margin percentages against a negative
+  denominator, e.g. when refunds exceeded sales.
 
 ### Fixed — guidance that caused the wrong answer
 - `references/07-data-intake.md` listed the minimum data for "Am I
@@ -256,4 +272,4 @@ Initial single-file version.
 
 ---
 
-*Md Kamrul Hasan · https://github.com/Kamrul5242 · signature `MKH-EBIC-2.1.0`*
+*Md Kamrul Hasan · https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.0`*

@@ -105,6 +105,10 @@ def margins(a):
         "note": "All margins use NET revenue as denominator.",
     }
     # `is None` not falsiness: 0 is a real answer, absence is not.
+    if net_rev <= 0:
+        out["ALERT"] = (
+            "Net revenue is zero or negative, so every margin percentage below "
+            "is meaningless. Check returns and discounts against gross revenue.")
     omitted = [name for name, val in
                (("--variable (shipping, gateway, commission, RTO)", a.variable),
                 ("--adspend", a.adspend)) if val is None]
@@ -278,6 +282,11 @@ def ccc(a):
 
 
 def npv(a):
+    if a.rate <= -1:
+        return {"ERROR": "Discount rate must be greater than -1 (-100%). "
+                         "At -100% every future cash flow is worth nothing and "
+                         "the present value is undefined.",
+                "discount_rate_pct": _pct(a.rate)}
     flows = _flows(a.flows)
     total = -a.initial
     schedule = []
@@ -325,6 +334,9 @@ def npv(a):
 
 
 def loan(a):
+    if a.months <= 0:
+        return {"ERROR": "Term must be at least one month.",
+                "months": a.months}
     r = a.annual_rate / 12
     n = a.months
     if r == 0:
@@ -768,6 +780,11 @@ def cashflow(a):
 def dilution(a):
     post = a.pre + a.investment
     inv_pct = _div(a.investment, post)
+    if inv_pct is None:
+        return {"ERROR": "Post-money valuation is zero or undefined, so "
+                         "ownership percentages cannot be computed.",
+                "pre_money": _r(a.pre), "investment": _r(a.investment),
+                "post_money": _r(post)}
     return {
         "pre_money": _r(a.pre),
         "investment": _r(a.investment),
@@ -783,6 +800,10 @@ def dilution(a):
 def price_test(a):
     cm = a.price - a.varcost
     cm_ratio = _div(cm, a.price)
+    if cm_ratio is None:
+        return {"ERROR": "Price must be greater than zero to compute a "
+                         "contribution-margin ratio.",
+                "price": _r(a.price), "variable_cost": _r(a.varcost)}
     new_price = a.price * (1 + a.increase)
     new_cm = new_price - a.varcost
     max_loss = _div(a.increase, cm_ratio + a.increase)

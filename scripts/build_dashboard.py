@@ -131,7 +131,11 @@ s["B6"] = '=IFERROR(INDEX(Ref!$B$2:$B$35,MATCH($B$5,Ref!$A$2:$A$35,0)),"?")'
 # cell a font family list with broad Unicode coverage so BDT/AED/INR/KRW/etc
 # all render correctly everywhere the file is opened, not just where a
 # system-level font substitution happens to kick in.
-SYMFONT = "Noto Sans,FreeSans,Arial Unicode MS,Arial"
+# Excel font names must be a SINGLE family, max 31 chars, no commas. A
+# CSS-style stack here produced <name val="Noto Sans,FreeSans,..."/>, which
+# Excel rejects outright - the workbook would not open at all. Excel does
+# its own font substitution when a family is missing, so one name is enough.
+SYMFONT = "Nirmala UI"
 s["A7"] = "Currency name (auto)"
 s["B7"] = '=IFERROR(INDEX(Ref!$C$2:$C$35,MATCH($B$5,Ref!$A$2:$A$35,0)),"Unknown")'
 s["A8"] = "Reporting period"
@@ -320,7 +324,7 @@ banner(d, 1, "EXECUTIVE DASHBOARD",
        sub="Live from Setup. Change any input and every figure here updates.")
 d["A3"] = f'=""&{SYM}&"  ·  Period: "&\'1. Setup\'!$B$8'
 style(d, "A3:H3", bold=True, size=10, fill=BAND, border=False)
-d["A3"].font = Font(name="Noto Sans,FreeSans,Arial Unicode MS,Arial",
+d["A3"].font = Font(name=SYMFONT,
                     bold=True, size=10, color="1A1A1A")
 
 # KPI cards
@@ -364,11 +368,11 @@ for rr in range(KPI_START, KPI_END+1):
 d.conditional_formatting.add(f"C{KPI_START}:C{KPI_END}",
     CellIsRule(operator="equal", formula=['"LOSS"'],
                font=Font(name=F, bold=True, color=WHITE),
-               fill=PatternFill("solid", fgColor=RED)))
+               fill=PatternFill(bgColor=RED)))
 d.conditional_formatting.add(f"C{KPI_START}:C{KPI_END}",
     CellIsRule(operator="equal", formula=['"OK"'],
                font=Font(name=F, bold=True, color=WHITE),
-               fill=PatternFill("solid", fgColor=GREEN)))
+               fill=PatternFill(bgColor=GREEN)))
 
 # Unit economics block (cols E-H)
 d.merge_cells("E5:H5")
@@ -439,11 +443,11 @@ for i,(l,f_,fmt) in enumerate(cash_left):
 d.conditional_formatting.add(f"C{CASH_START}:C{CASH_END}",
     CellIsRule(operator="equal", formula=['"LOSS"'],
                font=Font(name=F, bold=True, color=WHITE),
-               fill=PatternFill("solid", fgColor=RED)))
+               fill=PatternFill(bgColor=RED)))
 d.conditional_formatting.add(f"C{CASH_START}:C{CASH_END}",
     CellIsRule(operator="equal", formula=['"OK"'],
                font=Font(name=F, bold=True, color=WHITE),
-               fill=PatternFill("solid", fgColor=GREEN)))
+               fill=PatternFill(bgColor=GREEN)))
 
 liq = [
     ("Current Ratio",   f"=IFERROR({S('CA')}/{S('CL')},0)", '0.00'),
@@ -591,11 +595,11 @@ style(sc,f"B{OPP_}:D{OPP_}",bold=True,align="right",fmt='#,##0;(#,##0);-')
 sc.conditional_formatting.add(f"B{VD_}:D{VD_}",
     CellIsRule(operator="equal",formula=['"LOSS"'],
                font=Font(name=F,bold=True,color=WHITE),
-               fill=PatternFill("solid",fgColor=RED)))
+               fill=PatternFill(bgColor=RED)))
 sc.conditional_formatting.add(f"B{VD_}:D{VD_}",
     CellIsRule(operator="equal",formula=['"PROFIT"'],
                font=Font(name=F,bold=True,color=WHITE),
-               fill=PatternFill("solid",fgColor=GREEN)))
+               fill=PatternFill(bgColor=GREEN)))
 
 section(sc, VD_+2, "PRICE SENSITIVITY  ·  how much volume can you afford to lose?", span=6)
 p=VD_+3
@@ -771,8 +775,9 @@ section(sh, 4, "WHAT THIS IS", span=8)
 sh["A5"] = ("A CFO in a spreadsheet. You type what your business earned and spent. "
             "It tells you whether you are making money, whether each order makes "
             "money, how long your cash lasts, and what to fix first.")
+sh.merge_cells("A5:H5")
 style(sh, "A5:H5", size=10, wrap=True, border=False)
-sh.row_dimensions[5].height = 32
+sh.row_dimensions[5].height = 46
 
 section(sh, 7, "THREE STEPS", span=8)
 STEPS = [
