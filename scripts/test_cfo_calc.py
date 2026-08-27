@@ -13,11 +13,13 @@ changed behaviour or the worked example is wrong — check both.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.0
+Signature: MKH-EBIC-2.2.1
 """
 
+import io
 import os
 import sys
+import tempfile
 import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -181,7 +183,7 @@ class EdgeCases(unittest.TestCase):
 
 class BusinessInvalidInputs(unittest.TestCase):
     """A finance tool must fail loudly rather than return tidy nonsense.
-    Each of these crashed or produced a meaningless number before v2.2.0."""
+    Each of these crashed or produced a meaningless number before v2.2.1."""
 
     def test_discount_rate_of_minus_100_pct(self):
         r = run(["npv", "--rate", "-1", "--initial", "1000", "--flows", "100,200"])
@@ -254,6 +256,251 @@ class IntakeSheet(unittest.TestCase):
         self.assertEqual(r["unit_economics"]["break_even_roas"], 3.28)
         self.assertEqual(r["cash"]["unexplained_gap"], 0.0)
         self.assertEqual(r["balance_sheet_check"]["difference"], 0.0)
+
+
+class DepreciationConsistency(unittest.TestCase):
+    """D&A must reduce operating profit identically in `margins` and `intake`.
+
+    Before v2.2.1 `margins` ignored --depreciation entirely: it never
+    subtracted it and only added it back for EBITDA, so the same business
+    reported a profit 50,000 higher through `margins` than through `intake`.
+    The workbook agreed with `intake` (Dashboard operating profit subtracts
+    TOTAL OPEX, which includes the D&A row), so `margins` was the outlier.
+    """
+
+    REVENUE, COGS, VARIABLE, ADS, OPEX, DNA = 1000000, 400000, 100000, 100000, 200000, 50000
+
+    def _intake_csv(self):
+        import tempfile
+        rows = [
+            "section,line_item,value,currency,period,confidence,notes",
+            "INCOME,Gross Revenue,%d,BDT,2026-03 monthly,actual," % self.REVENUE,
+            "COGS,Product / Material Cost,%d,BDT,2026-03 monthly,actual," % self.COGS,
+            "VARIABLE,Outbound Shipping,%d,BDT,2026-03 monthly,actual," % self.VARIABLE,
+            "OPEX,Advertising Spend,%d,BDT,2026-03 monthly,actual," % self.ADS,
+            "OPEX,Rent,%d,BDT,2026-03 monthly,actual," % self.OPEX,
+            "OPEX,Depreciation & Amortization,%d,BDT,2026-03 monthly,actual," % self.DNA,
+            "UNITS,Number of Orders,1000,count,2026-03 monthly,actual,",
+        ]
+        p = os.path.join(tempfile.mkdtemp(), "dna.csv")
+        io.open(p, "w", encoding="utf-8", newline="").write("\n".join(rows) + "\n")
+        return p
+
+    def _margins(self):
+        return run(["margins", "--revenue", str(self.REVENUE), "--cogs", str(self.COGS),
+                    "--variable", str(self.VARIABLE), "--adspend", str(self.ADS),
+                    "--opex", str(self.OPEX), "--depreciation", str(self.DNA)])
+
+    def test_depreciation_reduces_operating_profit(self):
+        without = run(["margins", "--revenue", str(self.REVENUE), "--cogs", str(self.COGS),
+                       "--variable", str(self.VARIABLE), "--adspend", str(self.ADS),
+                       "--opex", str(self.OPEX), "--depreciation", "0"])
+        with_dna = self._margins()
+        self.assertEqual(
+            without["operating_profit_ebit"] - with_dna["operating_profit_ebit"],
+            self.DNA,
+            "operating profit must fall by exactly the D&A amount")
+
+    def test_ebitda_adds_depreciation_back(self):
+        m = self._margins()
+        self.assertEqual(m["ebitda"], m["operating_profit_ebit"] + self.DNA)
+        self.assertEqual(m["depreciation_amortization"], float(self.DNA))
+
+    def test_net_profit_carries_the_depreciation(self):
+        m = self._margins()
+        self.assertEqual(m["net_profit"], m["operating_profit_ebit"])
+
+    def test_margins_and_intake_agree_with_non_zero_depreciation(self):
+        m = self._margins()
+        i = run(["intake", "--file", self._intake_csv()])
+        self.assertEqual(m["operating_profit_ebit"],
+                         i["profit_and_loss"]["operating_profit"],
+                         "margins and intake disagree on depreciation")
+        self.assertEqual(m["contribution_after_variable"],
+                         i["profit_and_loss"]["contribution"])
+        self.assertEqual(m["net_revenue"], i["profit_and_loss"]["net_revenue"])
+
+
+class RunwayCashBasis(unittest.TestCase):
+    """Runway must start from cash on hand at period end.
+
+    Before v2.2.1 `intake` divided the OPENING balance by the burn, which
+    overstated survival by a full period. With opening 1,000,000, closing
+    600,000 and a 40,000 burn it reported 25 months instead of 15.
+    """
+
+    def _csv(self, opening=None, closing=None, revenue=100000, opex=80000):
+        rows = ["section,line_item,value,currency,period,confidence,notes",
+                "INCOME,Gross Revenue,%d,BDT,2026-03 monthly,actual," % revenue,
+                "COGS,Product / Material Cost,60000,BDT,2026-03 monthly,actual,",
+                "OPEX,Rent,%d,BDT,2026-03 monthly,actual," % opex,
+                "UNITS,Number of Orders,100,count,2026-03 monthly,actual,"]
+        if opening is not None:
+            rows.append("CASH,Opening Cash Balance,%d,BDT,2026-03-01,actual," % opening)
+        if closing is not None:
+            rows.append("CASH,Closing Cash Balance,%d,BDT,2026-03-31,actual," % closing)
+        p = os.path.join(tempfile.mkdtemp(), "rw.csv")
+        io.open(p, "w", encoding="utf-8", newline="").write("\n".join(rows) + "\n")
+        return p
+
+    def _mva(self, **kw):
+        return run(["intake", "--file", self._csv(**kw)])["minimum_viable_answer"]
+
+    def test_opening_differs_from_closing_uses_closing(self):
+        m = self._mva(opening=1000000, closing=600000)   # burn 40,000
+        self.assertEqual(m["runway_cash_used"], 600000.0)
+        self.assertEqual(m["runway_basis"], "closing cash")
+        self.assertAlmostEqual(m["runway_months"], 15.0, 2)
+
+    def test_opening_equals_closing(self):
+        m = self._mva(opening=600000, closing=600000)
+        self.assertAlmostEqual(m["runway_months"], 15.0, 2)
+
+    def test_missing_closing_falls_back_to_opening_and_says_so(self):
+        m = self._mva(opening=1000000)
+        self.assertEqual(m["runway_cash_used"], 1000000.0)
+        self.assertIn("opening cash", m["runway_basis"])
+        self.assertAlmostEqual(m["runway_months"], 25.0, 2)
+
+    def test_negative_cash_gives_negative_runway(self):
+        m = self._mva(opening=100000, closing=-80000)
+        self.assertLess(m["runway_months"], 0)
+
+    def test_positive_burn_produces_a_runway(self):
+        m = self._mva(opening=500000, closing=500000)
+        self.assertIsNotNone(m["runway_months"])
+
+    def test_negative_burn_has_no_runway(self):
+        """Profitable period: cash is not being consumed."""
+        m = self._mva(opening=500000, closing=500000, revenue=300000, opex=10000)
+        self.assertIsNone(m["runway_months"])
+
+    def test_zero_burn_has_no_runway(self):
+        """Exactly break-even: dividing by zero burn is undefined, not infinite."""
+        m = self._mva(opening=500000, closing=500000, revenue=100000, opex=40000)
+        self.assertIsNone(m["runway_months"])
+
+
+class MixedCurrencyAndPeriod(unittest.TestCase):
+    """`intake` must never add two currencies together.
+
+    Before v2.2.1 a sheet holding 100,000 BDT and 500 USD produced a single
+    "BDT" net revenue of 99,500 with no warning, in direct breach of the
+    skill's own rule against summing mixed currencies.
+    """
+
+    def _csv(self, rows):
+        head = "section,line_item,value,currency,period,confidence,notes"
+        p = os.path.join(tempfile.mkdtemp(), "cur.csv")
+        io.open(p, "w", encoding="utf-8", newline="").write(
+            "\n".join([head] + rows) + "\n")
+        return p
+
+    def test_single_currency_is_analysed_normally(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "COGS,Product / Material Cost,40000,BDT,2026-03 monthly,actual,",
+        ])])
+        self.assertNotIn("ERROR", r)
+        self.assertEqual(r["currency"], "BDT")
+        self.assertEqual(r["profit_and_loss"]["net_revenue"], 100000.0)
+
+    def test_two_currencies_are_refused_not_summed(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "COGS,Duty & Clearing,1200,USD,2026-03 monthly,actual,",
+        ])])
+        self.assertIn("ERROR", r)
+        self.assertNotIn("profit_and_loss", r)
+        self.assertEqual(sorted(r["currencies_found"]), ["BDT", "USD"])
+
+    def test_repeated_currency_is_not_a_mix(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "INCOME,Returns & Refunds,5000,BDT,2026-03 monthly,actual,",
+            "COGS,Product / Material Cost,40000,bdt,2026-03 monthly,actual,",
+        ])])
+        self.assertNotIn("ERROR", r)
+        self.assertEqual(r["profit_and_loss"]["net_revenue"], 95000.0)
+
+    def test_missing_currency_cells_do_not_trigger_a_false_mix(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "COGS,Product / Material Cost,40000,,2026-03 monthly,actual,",
+        ])])
+        self.assertNotIn("ERROR", r)
+
+    def test_unit_counts_are_not_mistaken_for_a_currency(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "UNITS,Number of Orders,100,count,2026-03 monthly,actual,",
+        ])])
+        self.assertNotIn("ERROR", r)
+        self.assertEqual(r["unit_economics"]["orders"], 100.0)
+
+    def test_mixed_flow_periods_are_flagged(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "COGS,Product / Material Cost,40000,BDT,2026 annual,actual,",
+        ])])
+        self.assertIn("ALERT", r)
+        self.assertEqual(len(r["periods_found"]), 2)
+
+    def test_balance_sheet_period_does_not_trigger_the_period_alert(self):
+        """A balance is a point in time; its date legitimately differs."""
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "COGS,Product / Material Cost,40000,BDT,2026-03 monthly,actual,",
+            "BALANCE,Cash & Bank,50000,BDT,2026-03-31 closing,actual,",
+        ])])
+        self.assertNotIn("ALERT", r)
+
+
+class ReportingHonesty(unittest.TestCase):
+    """Smaller defects that all made an output read more certain than it was."""
+
+    def _csv(self, rows):
+        head = "section,line_item,value,currency,period,confidence,notes"
+        p = os.path.join(tempfile.mkdtemp(), "h.csv")
+        io.open(p, "w", encoding="utf-8", newline="").write(
+            "\n".join([head] + rows) + "\n")
+        return p
+
+    def test_estimated_inputs_are_surfaced(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+            "VARIABLE,RTO / Failed Delivery Cost,7000,BDT,2026-03 monthly,estimated,",
+        ])])
+        self.assertIn("estimated_inputs", r)
+        self.assertEqual(len(r["estimated_inputs"]), 1)
+
+    def test_all_actual_inputs_are_not_flagged(self):
+        r = run(["intake", "--file", self._csv([
+            "INCOME,Gross Revenue,100000,BDT,2026-03 monthly,actual,",
+        ])])
+        self.assertNotIn("estimated_inputs", r)
+
+    def test_overdrawn_account_is_not_called_cash_positive(self):
+        r = run(["runway", "--cash", "-100000", "--burn", "-50000"])
+        self.assertIn("OVERDRAWN", r["status"])
+        self.assertNotIn("CASH POSITIVE", r["status"])
+
+    def test_healthy_negative_burn_still_reads_cash_positive(self):
+        r = run(["runway", "--cash", "100000", "--burn", "-50000"])
+        self.assertIn("CASH POSITIVE", r["status"])
+
+    def test_zero_roas_reports_headroom(self):
+        """A campaign that returned nothing has real, negative headroom."""
+        r = run(["roas", "--revenue", "0", "--spend", "500", "--cm-ratio", "0.3"])
+        self.assertEqual(r["roas"], 0.0)
+        self.assertIsNotNone(r["headroom"])
+        self.assertLess(r["headroom"], 0)
+
+    def test_zero_cac_explains_the_undefined_ratio(self):
+        r = run(["cac", "--spend", "0", "--customers", "100", "--ltv", "900"])
+        self.assertEqual(r["cac"], 0.0)
+        self.assertIsNone(r["ltv_cac_ratio"])
+        self.assertIn("ltv_cac_note", r)
 
 
 if __name__ == "__main__":

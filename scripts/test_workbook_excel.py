@@ -28,7 +28,7 @@ TWO LAYERS
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.0
+Signature: MKH-EBIC-2.2.1
 """
 
 import os
@@ -244,7 +244,7 @@ class ExcelEngine(unittest.TestCase):
             for cell in ws.UsedRange:
                 text = cell.Text
                 if isinstance(text, str) and text.startswith("#"):
-                    errors.append("%s!%s = %s" % (ws.Name, cell.Address(0, 0), text))
+                    errors.append("%s!%s = %s" % (ws.Name, cell.Address, text))
         self.assertEqual(errors, [], "formula errors: %r" % (errors[:10],))
 
     def test_excel_agrees_with_cfo_calc(self):
@@ -275,6 +275,43 @@ class ExcelEngine(unittest.TestCase):
         self.assertAlmostEqual(dash("Net Profit"), expected["net_profit"], 2)
         # The worked example's headline result.
         self.assertAlmostEqual(dash("Operating Profit"), -160750.0, 2)
+
+
+    def test_depreciation_flows_through_to_operating_profit(self):
+        """The third engine. The workbook must move with margins and intake.
+
+        Dashboard operating profit subtracts TOTAL OPEX, which includes the
+        D&A row on Setup, so raising D&A must lower operating profit by
+        exactly that amount - and land on the same number `margins` reports.
+        """
+        import cfo_calc
+        self._set_example_inputs()
+        ws = self.wb.Worksheets("2. Dashboard")
+        op_row = self._row_of("2. Dashboard", "Operating Profit")
+        before = float(ws.Cells(op_row, 2).Value)
+
+        dna = 30000
+        setup = self.wb.Worksheets("1. Setup")
+        setup.Cells(self._row_of("1. Setup", "Depreciation & Amortization"), 2).Value = dna
+        self.app.CalculateFullRebuild()
+        after = float(ws.Cells(op_row, 2).Value)
+
+        self.assertAlmostEqual(before - after, dna, 2,
+                               "workbook operating profit ignored depreciation")
+
+        args = cfo_calc.build_parser().parse_args([
+            "margins", "--revenue", "920000", "--returns", "70000",
+            "--cogs", "467500", "--variable", "123250",
+            "--adspend", "240000", "--opex", "180000",
+            "--depreciation", str(dna),
+        ])
+        expected = cfo_calc.margins(args)
+        self.assertAlmostEqual(after, expected["operating_profit_ebit"], 2,
+                               "workbook and margins disagree once D&A is non-zero")
+
+        # leave the sheet as found
+        setup.Cells(self._row_of("1. Setup", "Depreciation & Amortization"), 2).Value = 0
+        self.app.CalculateFullRebuild()
 
     def test_trend_sheet_computes_the_worked_example(self):
         ws = self.wb.Worksheets("4. Trend")

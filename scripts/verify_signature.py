@@ -5,7 +5,7 @@ verify_signature.py — provenance and integrity checker.
 Entrepreneur Business Intelligence & CFO skill
 Author:    Md Kamrul Hasan
 GitHub:    https://github.com/Kamrul5242
-Signature: MKH-EBIC-2.2.0
+Signature: MKH-EBIC-2.2.1
 License:   MIT — attribution required
 
 WHAT THIS DOES
@@ -31,8 +31,8 @@ import sys
 
 AUTHOR = "Md Kamrul Hasan"
 GITHUB = "https://github.com/Kamrul5242"
-SIGNATURE = "MKH-EBIC-2.2.0"
-VERSION = "2.2.0"
+SIGNATURE = "MKH-EBIC-2.2.1"
+VERSION = "2.2.1"
 SKILL = "entrepreneur-business-intelligence-cfo"
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

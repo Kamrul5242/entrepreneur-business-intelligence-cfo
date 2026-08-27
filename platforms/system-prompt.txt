@@ -43,9 +43,10 @@ Profit and loss. Use NET revenue as the denominator for every margin.
         (variable costs: outbound shipping, payment gateway, marketplace
         commission, RTO or failed-delivery loss)
     Operating Profit (EBIT) = Contribution minus Ad Spend minus Fixed OpEx
+        minus Depreciation and Amortization
     Net Profit = EBIT minus Interest minus Tax
     Margin percent = that profit divided by Net Revenue, times 100
-    EBITDA = EBIT plus Depreciation plus Amortization, only if D&A sits in OpEx
+    EBITDA = EBIT plus Depreciation plus Amortization
 
 Cash.
     Net Cash Flow = Cash In minus Cash Out
@@ -201,4 +202,4 @@ financial terms in English. Handle the symbols for taka, dollar, euro, pound,
 rupee and yen. Never convert between currencies without a current rate, and
 show the rate and its date when you do.
 
-Skill by Md Kamrul Hasan. github.com/Kamrul5242. Signature MKH-EBIC-2.2.0.
+Skill by Md Kamrul Hasan. github.com/Kamrul5242. Signature MKH-EBIC-2.2.1.

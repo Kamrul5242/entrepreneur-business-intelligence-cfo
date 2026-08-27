@@ -41,7 +41,7 @@ import math
 import statistics
 import sys
 
-SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.0"
+SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.1"
 
 
 # ---------- helpers ----------
@@ -75,12 +75,17 @@ def margins(a):
     gp = net_rev - a.cogs
     var = a.variable or 0
     ads = a.adspend or 0
+    # D&A is an operating cost. It must be subtracted here, exactly as
+    # `intake` does and as the workbook does (Dashboard operating profit
+    # subtracts TOTAL OPEX, which includes the D&A row). --opex is documented
+    # as EXCLUDING D&A so the two cannot be double counted.
+    dna = (a.depreciation or 0) + (a.amortization or 0)
     # Contribution sits between gross profit and operating profit: it is what
     # remains after every cost that scales with an order, before ads and
     # before fixed overhead.
     contribution = gp - var
-    op = contribution - ads - (a.opex or 0)
-    ebitda = op + (a.depreciation or 0) + (a.amortization or 0)
+    op = contribution - ads - (a.opex or 0) - dna
+    ebitda = op + dna
     ebt = op - (a.interest or 0)
     net = ebt - (a.tax or 0)
     out = {
@@ -95,6 +100,7 @@ def margins(a):
         "contribution_margin_pct": _pct(_div(contribution, net_rev)),
         "ad_spend": _r(ads),
         "operating_expenses": _r(a.opex or 0),
+        "depreciation_amortization": _r(dna),
         "operating_profit_ebit": _r(op),
         "operating_margin_pct": _pct(_div(op, net_rev)),
         "ebitda": _r(ebitda),
@@ -183,6 +189,11 @@ def cac(a):
     if a.ltv:
         out["ltv"] = _r(a.ltv)
         out["ltv_cac_ratio"] = _r(_div(a.ltv, c))
+        if c == 0:
+            out["ltv_cac_note"] = (
+                "CAC is zero, so LTV:CAC is undefined rather than infinite. "
+                "Either acquisition truly cost nothing this period, or the "
+                "spend figure is missing.")
     if a.monthly_contribution:
         out["monthly_contribution_per_customer"] = _r(a.monthly_contribution)
         out["cac_payback_months"] = _r(_div(c, a.monthly_contribution))
@@ -208,7 +219,10 @@ def roas(a):
         be = _div(1, a.cm_ratio)
         out["cm_ratio_before_ads_pct"] = _pct(a.cm_ratio)
         out["break_even_roas"] = _r(be)
-        out["headroom"] = _r(r - be) if (r and be) else None
+        # `if (r and be)` treated a ROAS of exactly 0 as missing, so a
+        # campaign that returned nothing reported no headroom at all.
+        out["headroom"] = (_r(r - be) if (r is not None and be is not None)
+                           else None)
         if r is None or be is None:
             out["verdict"] = "not computable — need both ROAS and CM ratio"
         elif r > be:
@@ -236,8 +250,14 @@ def runway(a):
         # negative burn yields a negative "runway" that would otherwise be
         # graded CRITICAL, inverting the verdict for a healthy business.
         months = None
-        status = ("CASH POSITIVE — net cash is growing, runway is not limiting"
-                  if a.burn < 0 else "NO NET BURN — cash is flat")
+        if a.cash < 0:
+            status = ("OVERDRAWN — the balance is negative. Cash is no longer "
+                      "falling, but the hole still has to be filled"
+                      if a.burn < 0 else
+                      "OVERDRAWN — the balance is negative and flat")
+        else:
+            status = ("CASH POSITIVE — net cash is growing, runway is not limiting"
+                      if a.burn < 0 else "NO NET BURN — cash is flat")
     elif months is not None:
         if months < 3:
             status = "CRITICAL — survival mode"
@@ -380,8 +400,18 @@ def _num(v):
         return None
 
 
+# Sections whose values are money. UNITS/MARKETING counts carry "count" in the
+# currency column and must not be treated as a second currency.
+_MONEY_SECTIONS = ("INCOME", "COGS", "VARIABLE", "OPEX", "BELOW_LINE",
+                   "BALANCE", "CASH", "CONCENTRATION")
+# Flow sections only. A balance sheet is a point in time, so its period
+# legitimately differs from the P&L's.
+_FLOW_SECTIONS = ("INCOME", "COGS", "VARIABLE", "OPEX", "BELOW_LINE")
+
+
 def _load_intake(path):
-    rows, meta = {}, {"currency": None, "period": None}
+    rows, meta = {}, {"currency": None, "period": None,
+                      "currencies": {}, "periods": {}, "soft": []}
     with open(path, newline="", encoding="utf-8-sig") as fh:
         reader = csv.DictReader(fh)
         if not reader.fieldnames or "section" not in reader.fieldnames:
@@ -395,11 +425,24 @@ def _load_intake(path):
                 continue
             val = _num(r.get("value"))
             rows[(sec, item)] = val
-            if val is not None:
+            if val is None:
+                continue
+            cur = (r.get("currency") or "").strip()
+            per = (r.get("period") or "").strip()
+            # Hard rule 4: every number carries actual / estimated / assumed.
+            conf = (r.get("confidence") or "").strip().lower()
+            if conf and conf != "actual":
+                meta["soft"].append("%s / %s (%s)" % (sec, item, conf))
+            if sec in _MONEY_SECTIONS and cur and cur.lower() != "count":
+                meta["currencies"].setdefault(cur.upper(), []).append(
+                    "%s / %s" % (sec, item))
                 if not meta["currency"]:
-                    meta["currency"] = (r.get("currency") or "").strip() or None
+                    meta["currency"] = cur
+            if sec in _FLOW_SECTIONS and per:
+                meta["periods"].setdefault(" ".join(per.lower().split()), []).append(
+                    "%s / %s" % (sec, item))
                 if not meta["period"]:
-                    meta["period"] = (r.get("period") or "").strip() or None
+                    meta["period"] = per
     return rows, meta
 
 
@@ -431,6 +474,20 @@ def intake(a):
         if value is None:
             missing.append(label)
         return value or 0.0
+
+    # Summing two currencies into one number is meaningless, and this tool
+    # deliberately does not invent an FX rate. Refuse rather than mislead.
+    if len(meta["currencies"]) > 1:
+        return {
+            "ERROR": "This sheet mixes %d currencies (%s). Totals across "
+                     "currencies are meaningless and no exchange rate is "
+                     "assumed. Convert every money row to one currency at a "
+                     "stated rate and date, then re-run."
+                     % (len(meta["currencies"]), ", ".join(sorted(meta["currencies"]))),
+            "currencies_found": {c: sorted(v) for c, v in
+                                 sorted(meta["currencies"].items())},
+            "source_file": a.file,
+        }
 
     gross = _row(rows, "INCOME", "gross revenue")
     if gross is None:
@@ -595,9 +652,16 @@ def intake(a):
         }
 
     # ---- the five answers SKILL.md section 5 requires ----
+    # Runway answers "how long do we survive from here", so it must start
+    # from cash on hand at the END of the period. Using the opening balance
+    # overstates survival by the whole period's burn.
     runway_m = None
-    if opening is not None and op < 0:
-        runway_m = _div(opening, -op)
+    cash_now = closing if closing is not None else opening
+    runway_basis = ("closing cash" if closing is not None
+                    else "opening cash - no closing balance given"
+                    if opening is not None else None)
+    if cash_now is not None and op < 0:
+        runway_m = _div(cash_now, -op)
     cm_per_order_after_ads = None
     if orders:
         cm_per_order_after_ads = (_div(contribution, orders) or 0) - (_div(ads, orders) or 0)
@@ -626,9 +690,24 @@ def intake(a):
                   if cm_per_order_after_ads > 0
                   else "NO, {:,.2f} per order after ads".format(cm_per_order_after_ads))),
         "runway_months": _r(runway_m),
+        "runway_basis": runway_basis,
+        "runway_cash_used": _r(cash_now),
         "biggest_problem": problem,
     }
 
+    if len(meta["periods"]) > 1:
+        out["ALERT"] = (
+            "Income-statement rows span %d different periods (%s). Figures "
+            "from different periods must not be added. Normalise every flow "
+            "row to one period before trusting any total above."
+            % (len(meta["periods"]), ", ".join(sorted(meta["periods"]))))
+        out["periods_found"] = {p: sorted(v) for p, v in
+                                sorted(meta["periods"].items())}
+    if meta["soft"]:
+        out["estimated_inputs"] = sorted(meta["soft"])
+        out["estimated_inputs_note"] = (
+            "%d input(s) are not marked 'actual'. Label every figure derived "
+            "from them as estimated when reporting." % len(meta["soft"]))
     if missing:
         out["missing_inputs"] = missing
     out["note"] = ("Every figure derives from the sheet; nothing is assumed. "
@@ -869,7 +948,10 @@ def build_parser():
                    help="advertising spend for the period (do NOT also put it "
                         "in --opex). Pass 0 explicitly to confirm there is none")
     m.add_argument("--opex", type=float, default=0,
-                   help="fixed overhead: rent, salaries, software, utilities")
+                   help="fixed overhead EXCLUDING depreciation and amortization: "
+                        "rent, salaries, software, utilities. Pass D&A through "
+                        "--depreciation / --amortization, which are subtracted "
+                        "from operating profit and added back for EBITDA")
     m.add_argument("--depreciation", type=float, default=0)
     m.add_argument("--amortization", type=float, default=0)
     m.add_argument("--interest", type=float, default=0)

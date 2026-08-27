@@ -1,5 +1,58 @@
 # Changelog
 
+## 2.2.1 — 2026-08-27
+
+A correctness and reliability release. No new capability.
+
+### Fixed — depreciation was silently ignored by `margins` (CRITICAL)
+- `scripts/cfo_calc.py` `margins()` never subtracted depreciation or
+  amortization from operating profit; it only added them back for EBITDA. The
+  same business therefore reported a profit **higher by exactly the D&A
+  amount** through `margins` than through `intake`, and higher than the
+  workbook, whose Dashboard operating profit subtracts TOTAL OPEX including
+  the D&A row. On the audit case: `margins` said 200,000, `intake` and the
+  workbook said 150,000. `net_profit` inherited the overstatement and EBITDA
+  compounded it. D&A is now subtracted from operating profit and added back
+  for EBITDA, and `--opex` documents that it EXCLUDES D&A so the two cannot be
+  double counted. `depreciation_amortization` is reported explicitly.
+
+### Fixed — runway was measured from the wrong cash balance (HIGH)
+- `intake` divided the OPENING cash balance by the burn, overstating survival
+  by a full period. With opening 1,000,000, closing 600,000 and a 40,000 burn
+  it reported 25 months instead of 15. It now uses closing cash when a closing
+  balance exists, falls back to opening only when it does not, and names the
+  basis in `runway_basis` and `runway_cash_used`.
+
+### Fixed — `intake` silently added different currencies together (HIGH)
+- A sheet holding 100,000 BDT and 500 USD produced a single "BDT" net revenue
+  of 99,500 with no warning, in breach of the skill's own rule against summing
+  mixed currencies. `intake` now refuses: it reports every currency found and
+  where, and returns no P&L until the sheet is normalised to one currency. No
+  exchange rate is ever assumed. Unit counts (`count`) are not mistaken for a
+  currency, and a balance-sheet date is not mistaken for a mixed period.
+- Income-statement rows spanning more than one period now raise an ALERT
+  listing the periods; balance-sheet rows are exempt, being a point in time.
+
+### Fixed — smaller defects that made output read more certain than it was
+- The workbook error reporter crashed with `TypeError` the moment it found an
+  error, because `Address` is a property, not a method on this binding. It now
+  names the offending cells, verified by injecting `=1/0` and `=NA()`.
+- `intake` discarded the `confidence` column. Non-`actual` rows are now listed
+  in `estimated_inputs`, as hard rule 4 requires.
+- `runway` called an overdrawn account "CASH POSITIVE" when the balance was
+  negative but no longer falling. It now says OVERDRAWN.
+- `roas` treated a ROAS of exactly 0 as missing and reported no headroom, so a
+  campaign that returned nothing showed no gap to break-even.
+- `cac` reported a CAC of 0 with a silent `null` ratio; it now explains that
+  LTV:CAC is undefined rather than infinite.
+
+### Changed
+- All seven platform adapters and the reference formula library now define
+  `EBIT = Contribution − Ad Spend − Fixed OpEx − D&A`, replacing the
+  conditional "[only if D&A sits in OpEx]" wording that allowed the ambiguity.
+- Tests: 57 calculator (was 33) and 13 workbook (was 12). Every new test was
+  verified to FAIL against the pre-fix code before being accepted.
+
 ## 2.2.0 — 2026-08-27
 
 ### Fixed — documentation drift outside README

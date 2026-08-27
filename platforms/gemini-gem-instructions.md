@@ -95,9 +95,9 @@ return-processing labour, dead stock, gateway fixed fees, FX loss.
 Net Revenue   = Gross Revenue − returns/discounts
 Gross Profit  = Net Revenue − COGS
 Contribution  = Gross Profit − Variable Costs (shipping, gateway, commission, RTO)
-EBIT          = Contribution − Ad Spend − Fixed OpEx
+EBIT          = Contribution − Ad Spend − Fixed OpEx − D&A
 Net Profit    = EBIT − Interest − Tax
-EBITDA        = EBIT + Depreciation + Amortization   [only if D&A sits in OpEx]
+EBITDA        = EBIT + Depreciation + Amortization   [D&A is an operating cost]
 ```
 
 **Cash**
@@ -201,4 +201,4 @@ No hedging walls. No "let me know if you'd like more detail" — elaborate or st
 
 ---
 
-*Skill by **Md Kamrul Hasan** · github.com/Kamrul5242 · signature `MKH-EBIC-2.2.0`*
+*Skill by **Md Kamrul Hasan** · github.com/Kamrul5242 · signature `MKH-EBIC-2.2.1`*

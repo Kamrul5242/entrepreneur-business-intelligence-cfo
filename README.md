@@ -7,8 +7,8 @@
 *Works on Claude, ChatGPT, Gemini, Cursor, Windsurf, GitHub Copilot, and any agent that reads `AGENTS.md`.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](CHANGELOG.md)
-[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.0-C9A227.svg)](SIGNATURE.json)
+[![Version](https://img.shields.io/badge/version-2.2.1-blue.svg)](CHANGELOG.md)
+[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.1-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
 [![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
@@ -189,7 +189,7 @@ directly and edit the yellow cells.
 > `python3 scripts/build_dashboard.py --force` regenerates the workbook, then
 > re-sign it with `python3 scripts/verify_signature.py --generate`.
 >
-> A long-standing defect here was fixed in v2.2.0: the symbol font was set to
+> A long-standing defect here was fixed in v2.2.1: the symbol font was set to
 > a CSS-style stack, `"Noto Sans,FreeSans,Arial Unicode MS,Arial"`. Excel font
 > names must be a **single** family — commas are illegal — so any rebuild
 > produced a workbook Excel refused to open at all, in repair mode included.
@@ -288,7 +288,7 @@ a report. Full details in [`SKILL.md §1`](SKILL.md).
 
 ## Digital signature
 
-Signature ID **`MKH-EBIC-2.2.0`**, embedded in 9 independent locations across
+Signature ID **`MKH-EBIC-2.2.1`**, embedded in 9 independent locations across
 the repo, plus a SHA-256 manifest of every file.
 
 ```bash
@@ -334,8 +334,8 @@ entrepreneur-business-intelligence-cfo/
 │   ├── cfo_calc.py                   13-command calculator, stdlib only
 │   ├── build_dashboard.py            Rebuilds the Excel workbook
 │   ├── verify_signature.py           Integrity + attribution checker
-│   ├── test_cfo_calc.py              33 calculator tests, stdlib unittest
-│   └── test_workbook_excel.py        12 workbook tests, incl. real Excel
+│   ├── test_cfo_calc.py              57 calculator tests, stdlib unittest
+│   └── test_workbook_excel.py        13 workbook tests, incl. real Excel
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
@@ -364,6 +364,6 @@ in copies and substantial portions.
 <div align="center">
 
 **Md Kamrul Hasan** · [github.com/Kamrul5242](https://github.com/Kamrul5242) ·
-signature `MKH-EBIC-2.2.0`
+signature `MKH-EBIC-2.2.1`
 
 </div>
