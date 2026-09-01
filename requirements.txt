@@ -37,4 +37,4 @@ et-xmlfile==2.0.0 \
 # Not hash-pinned because it is not installed by CI.
 # pywin32==312
 
-# Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.6
+# Author: Md Kamrul Hasan - https://github.com/Kamrul5242 - MKH-EBIC-2.2.7

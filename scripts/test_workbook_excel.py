@@ -28,7 +28,7 @@ TWO LAYERS
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.6
+Signature: MKH-EBIC-2.2.7
 """
 
 import os
@@ -82,6 +82,26 @@ def _sha256(path):
     with open(path, "rb") as fh:
         for chunk in iter(lambda: fh.read(65536), b""):
             h.update(chunk)
+    return h.hexdigest()
+
+
+def _content_digest(path):
+    """Hash the archive's CONTENT, independent of how it was compressed.
+
+    An .xlsx is a ZIP. Two builds on one machine are byte-identical, but a
+    Linux build and a Windows build are not: zlib emits different compressed
+    bytes for identical input across platforms and versions. The property that
+    actually matters is that every part is present, in the same order, with
+    the same uncompressed bytes - which this measures and archive-byte
+    comparison cannot.
+    """
+    import hashlib
+    import zipfile
+    h = hashlib.sha256()
+    with zipfile.ZipFile(path) as z:
+        for info in z.infolist():
+            h.update(info.filename.encode("utf-8"))
+            h.update(hashlib.sha256(z.read(info.filename)).digest())
     return h.hexdigest()
 
 
@@ -378,7 +398,13 @@ class Reproducibility(unittest.TestCase):
 
     def test_rebuild_matches_the_committed_workbook(self):
         """Strict on purpose. If this fails, either the workbook was edited by
-        hand or openpyxl is not the pinned version in requirements.txt."""
+        hand or openpyxl is not the pinned version in requirements.txt.
+
+        Compared by content, not archive bytes: the committed workbook is
+        built on Windows and CI rebuilds on Linux, where zlib compresses the
+        same input differently. Byte-identity is asserted separately, between
+        two builds on one machine, by test_two_builds_are_byte_identical.
+        """
         import tempfile
         if os.environ.get("CFO_WORKBOOK"):
             self.skipTest("CFO_WORKBOOK overrides the committed artifact")
@@ -386,12 +412,14 @@ class Reproducibility(unittest.TestCase):
         if not os.path.exists(committed):
             self.skipTest("committed workbook not present")
         d = tempfile.mkdtemp()
-        built = self._build(os.path.join(d, "rebuild.xlsx"))
+        target = os.path.join(d, "rebuild.xlsx")
+        self._build(target)
+        rebuilt, expected = _content_digest(target), _content_digest(committed)
         shutil.rmtree(d, ignore_errors=True)
         self.assertEqual(
-            built, _sha256(committed),
-            "a rebuild does not reproduce the committed workbook; check that "
-            "openpyxl matches the pin in requirements.txt")
+            rebuilt, expected,
+            "a rebuild does not reproduce the committed workbook's content; "
+            "check that openpyxl matches the pin in requirements.txt")
 
 
 if __name__ == "__main__":

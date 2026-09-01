@@ -33,7 +33,7 @@ newer, or if the previous version is still declared outside the CHANGELOG.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.6
+Signature: MKH-EBIC-2.2.7
 """
 
 import argparse

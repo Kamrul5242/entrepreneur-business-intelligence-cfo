@@ -1,5 +1,55 @@
 # Changelog
 
+## 2.2.7 - 2026-09-01
+
+Correctness of a published claim, and the guards a real CI run proved missing.
+No calculator, workbook or methodology change.
+
+### Fixed - the reproducibility claim was true only on one platform
+- CI failed at `test_rebuild_matches_the_committed_workbook`. The committed
+  workbook is built on Windows; the runner rebuilds it on Linux and got a
+  different SHA-256. Two builds on one machine are byte-identical, but zlib
+  does not emit identical compressed bytes across platforms, so the archives
+  differ while their contents do not.
+- The test now compares the workbook's CONTENT - every part, in order, by the
+  SHA-256 of its uncompressed bytes - which is the property that actually
+  matters and the one that holds everywhere. Byte-identity is still asserted,
+  by `test_two_builds_are_byte_identical`, between two builds on one machine.
+- README.md, docs/INSTALL.md and llms.txt claimed a rebuild reproduces the
+  committed workbook "byte for byte" without qualification. Corrected to say
+  what is true, and to name the platform limit rather than omit it.
+
+### Corrected - a claim made in the 2.2.6 notes
+- The 2.2.6 entry says the broken install step "was never noticed because no
+  workflow run had yet executed". That was wrong. Four runs existed and all
+  four had failed; they had not been read. The entry above it is left as
+  published - a changelog records what was said at the time - but the record
+  is corrected here.
+
+### Added - guards for the gaps adversarial testing exposed
+- `test_checkout_does_not_leave_a_token_on_disk`: flipping
+  `persist-credentials` from false to true was caught by nothing. Restricting
+  `permissions` limits what the workflow token may do; `persist-credentials:
+  false` keeps it out of `.git/config` altogether, and the two are not
+  substitutes.
+- `test_no_action_is_used_by_mutable_reference`: the existing SHA guard
+  inspected a line only once it already carried a SHA, so an action
+  reintroduced as `actions/checkout@v4` would have passed silently.
+- `test_the_pinned_set_is_closed_over_its_dependencies`: `--require-hashes`
+  refuses anything it holds no hash for, so an unpinned transitive dependency
+  stops CI before a single test runs. Asserted locally, so an openpyxl bump
+  that adds a dependency fails here rather than on a runner.
+
+### Known limitation - action SHA to release mapping
+- That `11d5960a326750d5838078e36cf38b85af677262` is genuinely the commit
+  behind `actions/checkout` v4 cannot be verified without asking GitHub. The
+  tests check the pin's shape, never its provenance; a test that claimed
+  otherwise offline would assert nothing. The mapping is confirmed by hand at
+  release time.
+- Deleting one of the two hashes for a package is not caught, and is not
+  treated as a defect: pip fails closed, so the worst case is a loud install
+  error, never a silent substitution.
+
 ## 2.2.6 - 2026-08-28
 
 Release-engineering hardening. No calculator, workbook or methodology change.

@@ -48,7 +48,10 @@ jobs:
 
       # Structural checks run here; the Excel engine tests skip on Linux by
       # design and are exercised on a Windows machine with Excel installed.
-      # This job also asserts the workbook rebuild is byte-identical.
+      # This job also asserts a rebuild reproduces the committed workbook's
+      # contents. Byte-identity is asserted only between two builds on this
+      # runner: the committed file is built on Windows, and zlib does not
+      # emit identical compressed bytes across platforms.
       - name: Workbook tests
         run: python scripts/test_workbook_excel.py
 

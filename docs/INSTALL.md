@@ -142,8 +142,10 @@ CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
 ```
 
 Requires `openpyxl==3.1.5` (see `requirements.txt`). The pin matters: the build
-is deterministic, so a rebuild reproduces the committed workbook byte for byte,
-and a different openpyxl changes the hash. Always open a rebuild in Excel, or
+is deterministic, so a rebuild reproduces the committed workbook part for part,
+and a different openpyxl changes the content. Two builds on one machine are
+byte-identical; a Linux rebuild of a Windows-built workbook is not, because
+zlib compresses identically-shaped input differently across platforms. Always open a rebuild in Excel, or
 run the workbook tests against it, before shipping it.
 
 ## Verifying integrity
@@ -158,4 +160,4 @@ author attribution. Exits non-zero if anything was modified or stripped.
 ---
 
 *Entrepreneur Business Intelligence & CFO — **Md Kamrul Hasan** ·
-https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.6`*
+https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.7`*

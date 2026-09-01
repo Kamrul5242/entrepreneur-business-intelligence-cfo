@@ -13,7 +13,7 @@ changed behaviour or the worked example is wrong — check both.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.6
+Signature: MKH-EBIC-2.2.7
 """
 
 import io

@@ -7,8 +7,8 @@
 *Works on Claude, ChatGPT, Gemini, Cursor, Windsurf, GitHub Copilot, and any agent that reads `AGENTS.md`.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.2.6-blue.svg)](CHANGELOG.md)
-[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.6-C9A227.svg)](SIGNATURE.json)
+[![Version](https://img.shields.io/badge/version-2.2.7-blue.svg)](CHANGELOG.md)
+[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.7-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
 [![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
@@ -196,10 +196,14 @@ directly and edit the yellow cells.
 > The shipped binary predated that line, which is why the fault stayed hidden.
 > It is now `Nirmala UI`, and the rebuild is verified by opening it in Excel.
 >
-> The build is also **deterministic**: two runs produce byte-identical files,
-> so a rebuild reproduces the committed workbook exactly and still verifies
-> against `SIGNATURE.json`. An `.xlsx` is a ZIP, so entry timestamps and
-> `dcterms:modified` are pinned (override with `SOURCE_DATE_EPOCH`).
+> The build is also **deterministic**: two runs on one machine produce
+> byte-identical files, and a rebuild on any machine reproduces the committed
+> workbook's content part for part. An `.xlsx` is a ZIP, so entry timestamps
+> and `dcterms:modified` are pinned (override with `SOURCE_DATE_EPOCH`).
+> Byte-identity does not survive a change of platform: zlib compresses the
+> same input differently on Linux and on Windows, so CI compares the archive's
+> contents rather than its compressed bytes. `SIGNATURE.json` records the
+> hash of the committed file, which is what a user actually downloads.
 >
 > `scripts/test_workbook_excel.py` guards against a repeat. It checks font
 > names, conditional-format fills, sheet list and formula count with openpyxl
@@ -291,7 +295,7 @@ a report. Full details in [`SKILL.md §1`](SKILL.md).
 
 ## Digital signature
 
-Signature ID **`MKH-EBIC-2.2.6`**, embedded in 9 independent locations across
+Signature ID **`MKH-EBIC-2.2.7`**, embedded in 9 independent locations across
 the repo, plus a SHA-256 manifest of every file.
 
 ```bash
@@ -342,7 +346,7 @@ entrepreneur-business-intelligence-cfo/
 │   ├── verify_signature.py           Integrity + attribution checker
 │   ├── test_cfo_calc.py              57 calculator tests, stdlib unittest
 │   ├── test_workbook_excel.py        13 workbook tests, incl. real Excel
-│   └── test_reference_consistency.py 32 tests: docs vs code, semantic
+│   └── test_reference_consistency.py 35 tests: docs vs code, semantic
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
@@ -371,6 +375,6 @@ in copies and substantial portions.
 <div align="center">
 
 **Md Kamrul Hasan** · [github.com/Kamrul5242](https://github.com/Kamrul5242) ·
-signature `MKH-EBIC-2.2.6`
+signature `MKH-EBIC-2.2.7`
 
 </div>

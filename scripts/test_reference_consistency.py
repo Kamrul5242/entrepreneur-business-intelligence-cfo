@@ -16,7 +16,7 @@ against `pl_model`. Rewording is free; changing the arithmetic is not.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.6
+Signature: MKH-EBIC-2.2.7
 """
 
 import io
@@ -481,6 +481,28 @@ class ReleaseProcess(unittest.TestCase):
             self.assertNotIn(forbidden, ci,
                              "ci.yml grants %r to untrusted PR code" % forbidden)
 
+    def test_checkout_does_not_leave_a_token_on_disk(self):
+        """actions/checkout writes the workflow token into .git/config unless
+        told not to. Every later step then runs with a credential it never
+        asked for, and any of them - a test, a dependency's build hook - can
+        read it and push. Restricting `permissions` limits what the token may
+        do; `persist-credentials: false` keeps it off the disk entirely, and
+        the two are not substitutes for one another.
+
+        Adversarial case F: flipping this to true was caught by nothing.
+        """
+        ci = self._ci()
+        self.assertIn(
+            "actions/checkout@", ci,
+            "no checkout step found; this guard has lost its subject")
+        self.assertRegex(
+            ci, r"(?m)^\s+persist-credentials:\s*false\s*(?:#.*)?$",
+            "checkout does not set persist-credentials: false, so the "
+            "workflow token is written into .git/config for every later step")
+        self.assertNotRegex(
+            ci, r"(?m)^\s+persist-credentials:\s*true\s*(?:#.*)?$",
+            "checkout persists the workflow token on disk")
+
     def test_ci_does_not_use_pull_request_target(self):
         self.assertNotIn(
             "pull_request_target", self._ci(),
@@ -636,6 +658,66 @@ class DependencyReproducibility(unittest.TestCase):
             len(re.findall(r"uses:\s*[\w./-]+@[0-9a-f]{40}\s*#\s*v\d",
                            read(self.CI))), 2,
             "expected both actions SHA-pinned with a version comment")
+
+
+    def test_no_action_is_used_by_mutable_reference(self):
+        """A tag is not a pin. `actions/checkout@v4` resolves to whatever the
+        tag points at today, so a retagged or compromised release would run
+        with the workflow's token. Only a 40-character commit SHA is
+        immutable, and the guard above inspects a line only once it already
+        has one, so an action reintroduced by tag would pass it silently.
+
+        DOCUMENTED LIMITATION: that a given SHA really is the commit behind
+        the release its comment names cannot be checked here. Confirming it
+        requires asking GitHub, and a test that pretended to verify it
+        offline would assert nothing. The mapping is verified by hand at
+        release time and recorded in CHANGELOG.md.
+        """
+        floating = []
+        for line in read(self.CI).split("\n"):
+            m = re.search(r"uses:\s*([\w./-]+)@(\S+)", line)
+            if m and not re.fullmatch(r"[0-9a-f]{40}", m.group(2)):
+                floating.append("%s@%s" % (m.group(1), m.group(2)))
+        self.assertEqual(
+            floating, [],
+            "action(s) pinned to a mutable ref instead of a commit SHA: %r"
+            % floating)
+
+    def test_the_pinned_set_is_closed_over_its_dependencies(self):
+        """Every dependency of a pinned package must itself be pinned.
+
+        `--require-hashes` refuses to install anything it holds no hash for,
+        so an unpinned transitive dependency does not degrade quietly - it
+        stops CI dead before a single test runs. openpyxl needs et-xmlfile,
+        and this closure is what makes the install step reproducible rather
+        than merely hash-checked. Asserted locally so an openpyxl bump that
+        adds a dependency fails here instead of on a runner.
+        """
+        try:
+            from importlib.metadata import requires
+        except ImportError:                      # pragma: no cover
+            self.skipTest("importlib.metadata unavailable")
+        pinned = {n.lower().replace("_", "-") for n in
+                  re.findall(r"(?m)^([A-Za-z0-9._-]+)==", read(self.REQ))}
+        self.assertTrue(pinned, "requirements.txt pins no package")
+        missing = []
+        for name in sorted(pinned):
+            try:
+                deps = requires(name) or []
+            except Exception:
+                self.skipTest("%s is not installed, so its dependencies "
+                              "cannot be resolved" % name)
+            for spec in deps:
+                if ";" in spec:            # an extra, or an environment marker
+                    continue
+                dep = re.split(r"[<>=!~\[ ]", spec.strip())[0]
+                dep = dep.lower().replace("_", "-")
+                if dep and dep not in pinned:
+                    missing.append("%s requires %s" % (name, dep))
+        self.assertEqual(
+            missing, [],
+            "requirements.txt is not closed over its dependencies, so a "
+            "--require-hashes install cannot succeed: %r" % missing)
 
 
 if __name__ == "__main__":
