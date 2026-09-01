@@ -16,7 +16,7 @@ against `pl_model`. Rewording is free; changing the arithmetic is not.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.4
+Signature: MKH-EBIC-2.2.5
 """
 
 import io
@@ -448,6 +448,62 @@ class PublishedClaims(unittest.TestCase):
         self.assertEqual(
             offenders, [],
             "version(s) cited that the CHANGELOG never records: %r" % offenders)
+
+
+class ReleaseProcess(unittest.TestCase):
+    """The release mechanism itself, and the CI that runs untrusted code."""
+
+    CI = os.path.join(ROOT, ".github", "workflows", "ci.yml")
+
+    def test_declarations_agree_and_history_is_intact(self):
+        import release_version
+        problems = release_version.check(verbose=False)
+        self.assertEqual(problems, [], "release_version --check reported: %r"
+                         % problems)
+
+    def _ci(self):
+        if not os.path.exists(self.CI):
+            self.skipTest("no CI workflow present")
+        return read(self.CI)
+
+    def test_ci_declares_least_privilege(self):
+        """A fork pull request runs untrusted code with this token."""
+        ci = self._ci()
+        self.assertRegex(
+            ci, r"(?m)^permissions:\s*$",
+            "ci.yml declares no permissions block, so the workflow inherits "
+            "the repository default, which may include write access")
+        self.assertRegex(ci, r"(?m)^\s+contents:\s*read\s*$",
+                         "ci.yml does not restrict contents to read")
+        for forbidden in ("contents: write", "packages: write",
+                          "pull-requests: write", "issues: write",
+                          "id-token: write"):
+            self.assertNotIn(forbidden, ci,
+                             "ci.yml grants %r to untrusted PR code" % forbidden)
+
+    def test_ci_does_not_use_pull_request_target(self):
+        self.assertNotIn(
+            "pull_request_target", self._ci(),
+            "pull_request_target runs trusted-context code against an "
+            "attacker-controlled branch")
+
+    def test_ci_pins_actions_to_immutable_shas(self):
+        floating = re.findall(r"uses:\s*([\w./-]+)@(v?\d+(?:\.\d+)*)\s*$",
+                              self._ci(), re.M)
+        self.assertEqual(floating, [],
+                         "action(s) pinned to a movable tag: %r" % floating)
+        self.assertTrue(re.search(r"uses:\s*[\w./-]+@[0-9a-f]{40}", self._ci()),
+                        "expected at least one SHA-pinned action")
+
+    def test_ci_does_not_pipe_downloads_into_a_shell(self):
+        ci = self._ci()
+        for pattern in ("curl", "wget", "| bash", "| sh"):
+            self.assertNotIn(pattern, ci,
+                             "ci.yml fetches or pipes external code: %r" % pattern)
+
+    def test_ci_defines_no_secrets(self):
+        self.assertNotIn("secrets.", self._ci(),
+                         "ci.yml exposes a secret to pull-request code")
 
 
 if __name__ == "__main__":

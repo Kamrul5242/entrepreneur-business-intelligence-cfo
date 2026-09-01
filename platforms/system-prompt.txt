@@ -202,4 +202,4 @@ financial terms in English. Handle the symbols for taka, dollar, euro, pound,
 rupee and yen. Never convert between currencies without a current rate, and
 show the rate and its date when you do.
 
-Skill by Md Kamrul Hasan. github.com/Kamrul5242. Signature MKH-EBIC-2.2.4.
+Skill by Md Kamrul Hasan. github.com/Kamrul5242. Signature MKH-EBIC-2.2.5.

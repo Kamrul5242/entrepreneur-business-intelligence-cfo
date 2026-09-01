@@ -1,5 +1,40 @@
 # Changelog
 
+## 2.2.5 - 2026-08-28
+
+A security and release-process hardening release. No calculator, workbook or
+methodology change.
+
+### Fixed - version bumping could rewrite history
+- Releases were cut with a repository-wide replacement of the old version
+  string, which three times rewrote historical prose. The existing guard only
+  caught a sweep inventing an unreleased version; it could not catch
+  "fixed in v2.2.1" being rewritten to a version that does exist.
+- New `scripts/release_version.py` separates CURRENT DECLARATIONS from
+  HISTORICAL REFERENCES. A bump touches only the `MKH-EBIC-<version>`
+  signature token and seven registered bare-version fields; CHANGELOG.md is
+  never touched. `--check` fails if a declaration disagrees, if a historical
+  reference cites the current version or newer, or if the previous version is
+  still declared. It runs in CI and in the test suite.
+
+### Changed - CI hardened against untrusted pull requests
+- `.github/workflows/ci.yml` now declares `permissions: contents: read` at
+  workflow level, so the token cannot write to the repository even if a fork
+  PR runs malicious code.
+- Actions are pinned to immutable commit SHAs rather than floating majors.
+- `actions/checkout` uses `persist-credentials: false`, so no token is left in
+  the runner's git config for later steps to reuse.
+- The inline shell heredoc that recomputed workbook hashes was removed; that
+  check already exists as a test, so CI now runs only repository-controlled
+  Python entry points. No `curl | bash`, no secrets, no `pull_request_target`.
+- Added a job timeout.
+
+### Known limitation
+- CI configuration under `.github/` remains outside `SIGNATURE.json`. The
+  manifest covers the distributed skill - what a user installs and runs - not
+  the build infrastructure. A workflow change is therefore visible in git
+  history but not in the signed manifest. This is intentional and now stated.
+
 ## 2.2.4 - 2026-08-28
 
 A claims-integrity release. No calculator, workbook or methodology change.

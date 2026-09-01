@@ -2,7 +2,7 @@
 
 > An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 161-formula 7-sheet live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
 
-Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.4. Signature: MKH-EBIC-2.2.4, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
+Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.5. Signature: MKH-EBIC-2.2.5, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
 
 This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (compact core fits the 8,000-character instruction cap), a Cursor `.mdc` rule, a Windsurf rule, GitHub Copilot instructions, a Gemini Gem, an `AGENTS.md` file, or a raw system prompt.
 
