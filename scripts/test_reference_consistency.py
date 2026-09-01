@@ -16,7 +16,7 @@ against `pl_model`. Rewording is free; changing the arithmetic is not.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.2
+Signature: MKH-EBIC-2.2.3
 """
 
 import io
@@ -272,6 +272,68 @@ class PlatformAdaptersMatchModel(unittest.TestCase):
         self.assertGreaterEqual(checked, 6,
                                 "expected an EBIT line in each adapter, found %d"
                                 % checked)
+
+
+class DocumentedCommandsRun(unittest.TestCase):
+    """Every calculator example in the docs must run, and must not warn.
+
+    `docs/INSTALL.md` shipped a `margins` example that omitted --variable and
+    --adspend, so the documented command reported +228,000 for the business in
+    06-worked-examples.md that loses 160,750. The reference guard missed it
+    because it only inspected references/ and platforms/. Documentation that
+    tells a user to run a command is executable documentation, so it is run.
+    """
+
+    DOCS = ("docs/INSTALL.md", "README.md", "SKILL.md")
+
+    def _examples(self, rel):
+        path = os.path.join(ROOT, *rel.split("/"))
+        if not os.path.exists(path):
+            return []
+        out, buf = [], None
+        for raw in read(path).split("\n"):
+            line = raw.strip()
+            if buf is not None:
+                buf += " " + line.rstrip("\\").strip()
+                if not line.endswith("\\"):
+                    out.append(buf)
+                    buf = None
+                continue
+            if not line.startswith("python3 scripts/cfo_calc.py"):
+                continue
+            if line.endswith("\\"):
+                buf = line.rstrip("\\").strip()
+            else:
+                out.append(line)
+        return out
+
+    def test_every_documented_example_executes_without_warning(self):
+        import subprocess
+        checked = 0
+        for rel in self.DOCS:
+            for example in self._examples(rel):
+                argv = example.split()
+                argv[0] = sys.executable
+                argv[1] = os.path.join(ROOT, "scripts", "cfo_calc.py")
+                r = subprocess.run(argv, capture_output=True, text=True, cwd=ROOT)
+                self.assertEqual(
+                    r.returncode, 0,
+                    "%s documents a command that fails:\n  %s\n  %s"
+                    % (rel, example, r.stderr.strip()[-300:]))
+                self.assertNotIn(
+                    '"WARNING"', r.stdout,
+                    "%s documents an incomplete cost stack, so the number it "
+                    "prints is not a profit:\n  %s" % (rel, example))
+                checked += 1
+        self.assertGreater(checked, 3,
+                           "expected several documented examples, found %d" % checked)
+
+    def test_install_guide_lists_every_command(self):
+        import cfo_calc
+        text = read(os.path.join(ROOT, "docs", "INSTALL.md"))
+        missing = [c for c in cfo_calc.COMMANDS if c not in text]
+        self.assertEqual(missing, [],
+                         "docs/INSTALL.md does not mention command(s): %r" % missing)
 
 
 if __name__ == "__main__":

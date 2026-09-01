@@ -170,4 +170,4 @@ Good: "You pay ৳420 to acquire a customer worth ৳310 in gross profit. Every 
 Mirror the user's language — Bangla, Banglish, or English — keeping financial terms in English. Currencies: ৳ $ € £ ₹ ¥. Don't convert without a current rate; show rate and date if you do.
 
 ---
-Skill by Md Kamrul Hasan · github.com/Kamrul5242 · signature MKH-EBIC-2.2.2
+Skill by Md Kamrul Hasan · github.com/Kamrul5242 · signature MKH-EBIC-2.2.3

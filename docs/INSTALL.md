@@ -31,7 +31,7 @@ parameter of your API calls.
 
 1. Create a GPT → **Configure** → **Instructions**.
 2. Paste the full contents of `platforms/universal-compact-core.md`
-   (7,529 characters — fits comfortably under the 8,000-char cap).
+   (7,873 characters — fits under the 8,000-char cap; re-check the count after any edit).
 3. Optional: enable **Knowledge** and upload the `references/*.md` files and
    `assets/business-data-intake-template.csv`.
 4. Optional: enable **Code Interpreter** and upload `scripts/cfo_calc.py` so
@@ -97,7 +97,10 @@ Standard library only. Python 3.8+. No `pip install` needed.
 python3 scripts/cfo_calc.py list
 
 python3 scripts/cfo_calc.py margins --revenue 920000 --returns 70000 \
-    --cogs 442000 --opex 180000
+    --cogs 467500 --variable 123250 --adspend 240000 --opex 180000
+
+# one command for the whole picture, from a filled intake sheet
+python3 scripts/cfo_calc.py intake --file assets/business-data-intake-example.csv
 
 python3 scripts/cfo_calc.py roas --revenue 850000 --spend 240000 --cm-ratio 0.335
 
@@ -111,7 +114,15 @@ python3 scripts/cfo_calc.py runway --cash 1200000 --burn 160750
 ```
 
 Commands: `margins · unit · cac · roas · runway · ccc · npv · loan · dilution
-· price-test`. Output is JSON.
+· price-test · cashflow · inventory · intake`. Output is JSON.
+
+**Cost buckets matter.** `--cogs` is landed product cost; `--variable` is the
+per-order bucket founders forget (outbound shipping, payment gateway,
+marketplace commission, RTO); `--adspend` is advertising; `--opex` is fixed
+overhead EXCLUDING depreciation, which belongs in `--depreciation`. Each cost
+goes in exactly one flag. Omit `--variable` or `--adspend` and `margins` warns
+you, because leaving them out turns a loss into an apparent profit. The full
+classification is in `references/01-formula-library.md`.
 
 ## Using the Excel dashboard
 
@@ -121,12 +132,19 @@ the yellow cells on **1. Setup**, everything else recalculates.
 To rebuild it after modifying `scripts/build_dashboard.py`:
 
 ```bash
-python3 scripts/build_dashboard.py
+# the workbook is a signed asset, so overwriting is opt-in
+python3 scripts/build_dashboard.py --force
+python3 scripts/verify_signature.py --generate   # re-sign afterwards
+
+# or build elsewhere and leave the signed copy untouched
+python3 scripts/build_dashboard.py -o /tmp/rebuild.xlsx
+CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
 ```
 
-(Requires `openpyxl`. LibreOffice is used to recalculate cached formula
-values if you're validating changes — see `scripts/build_dashboard.py`'s
-comments for the recalc step used during development.)
+Requires `openpyxl==3.1.5` (see `requirements.txt`). The pin matters: the build
+is deterministic, so a rebuild reproduces the committed workbook byte for byte,
+and a different openpyxl changes the hash. Always open a rebuild in Excel, or
+run the workbook tests against it, before shipping it.
 
 ## Verifying integrity
 
@@ -140,4 +158,4 @@ author attribution. Exits non-zero if anything was modified or stripped.
 ---
 
 *Entrepreneur Business Intelligence & CFO — **Md Kamrul Hasan** ·
-https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.2`*
+https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.3`*

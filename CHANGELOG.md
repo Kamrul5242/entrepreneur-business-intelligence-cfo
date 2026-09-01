@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.2.3 - 2026-08-28
+
+A documentation-integrity release. No calculator or workbook logic changed.
+
+### Fixed - the installation guide taught the wrong invocation (HIGH)
+- `docs/INSTALL.md` demonstrated `margins --revenue 920000 --returns 70000
+  --cogs 442000 --opex 180000`. That is worked example 1, with the per-order
+  variable bucket and ad spend both omitted, so the documented command printed
+  **+228,000** for a business that loses **160,750**. The v2.2.1 warning did
+  fire, but a reader copying the example still gets the wrong number. The
+  example now passes `--variable 123250 --adspend 240000` and returns
+  -160,750, and the guide explains that each cost belongs to exactly one flag.
+- The command list named 10 commands; `cashflow`, `inventory` and `intake`
+  were missing.
+- The rebuild instruction was `python3 scripts/build_dashboard.py`, which has
+  refused to overwrite the signed workbook since v2.2.0. Replaced with the
+  `--force` plus re-sign flow, and the `-o` flow for verifying a rebuild.
+- Removed a false claim that LibreOffice recalculates cached formula values
+  during the build. No such step exists.
+- Corrected the compact-core size from 7,529 to 7,873 characters.
+
+### Added - the drift guard now covers docs/
+- `DocumentedCommandsRun` extracts every `cfo_calc.py` example from
+  `docs/INSTALL.md`, `README.md` and `SKILL.md`, **executes it**, and fails if
+  it errors or if the output carries a WARNING - meaning the documented cost
+  stack is incomplete. It also asserts the install guide names every command
+  the calculator registers.
+- Demonstrated to fail first: against the unfixed guide it reported the
+  +228,000 output as an incomplete cost stack, and listed the missing
+  commands `['cashflow', 'inventory']`.
+- This closes the gap that let the defect survive v2.2.2: the reference guard
+  inspected `references/` and `platforms/` but never `docs/`.
+
 ## 2.2.2 — 2026-08-27
 
 A reference-integrity release. No new capability.
