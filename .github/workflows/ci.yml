@@ -35,7 +35,7 @@ jobs:
       # Only openpyxl, from the repository's own pinned requirements. No
       # external script is fetched and executed anywhere in this workflow.
       - name: Install workbook dependency
-        run: python -m pip install --require-hashes=false -r requirements.txt
+        run: python -m pip install --require-hashes -r requirements.txt
 
       - name: Release declarations and version history
         run: python scripts/release_version.py --check

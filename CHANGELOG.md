@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.2.6 - 2026-08-28
+
+Release-engineering hardening. No calculator, workbook or methodology change.
+
+### Fixed - the CI install step could never have worked
+- `.github/workflows/ci.yml` ran `pip install --require-hashes=false`. pip has
+  no such form: it exits with a usage error. Every CI run would have failed at
+  the dependency step. It was never noticed because no workflow run had yet
+  executed. Now `--require-hashes`, which is both valid and stricter.
+
+### Added - hash-pinned dependencies
+- `requirements.txt` pins `openpyxl==3.1.5` and its only dependency
+  `et-xmlfile==2.0.0` by SHA-256, wheel and sdist, taken from the PyPI JSON
+  API. CI installs with `--require-hashes`, so pip refuses anything unpinned
+  or substituted. Both distributions are pure Python (`py3-none-any`), so this
+  is platform-independent and does not affect Excel support on Windows.
+- Verified by real download, not by "already satisfied": a clean
+  `pip download --require-hashes` succeeds, and corrupting the hashes makes
+  pip refuse with THESE PACKAGES DO NOT MATCH THE HASHES.
+
+### Added - the bump mechanism is now tested by running it
+- `BumpMechanics` copies the repository, performs a real bump to the next
+  patch version, and inspects the result: every registered declaration
+  advanced, no previous signature token survived, the release tool bumped
+  itself, CHANGELOG came back byte-for-byte identical, every historical
+  reference line was unchanged, and the `--bump` usage example in the tool's
+  own docstring was left as written.
+- `DependencyReproducibility` asserts every pinned package carries `--hash`
+  lines, that CI enforces them with a valid flag, and that each SHA-pinned
+  action still carries a comment naming its release.
+
 ## 2.2.5 - 2026-08-28
 
 A security and release-process hardening release. No calculator, workbook or

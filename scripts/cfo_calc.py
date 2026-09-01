@@ -44,7 +44,7 @@ import sys
 # The P&L bridge lives in exactly one place. Do not restate it here.
 import pl_model
 
-SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.5"
+SIG = "Md Kamrul Hasan | github.com/Kamrul5242 | MKH-EBIC-2.2.6"
 
 
 # ---------- helpers ----------

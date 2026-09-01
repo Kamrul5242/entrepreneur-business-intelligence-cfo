@@ -3,10 +3,10 @@ name: entrepreneur-business-intelligence-cfo
 description: Acts as a practical CFO, growth strategist, and operations analyst for founders and small businesses. Use whenever a user shares business numbers, revenue, expenses, ad spend, or a P&L; asks whether a business is profitable, sustainable, or running out of cash; asks about cash in vs cash out, burn, runway, margins, ROI, ROAS, CAC, LTV, break-even, pricing, unit economics, funding, dilution, valuation, or inventory; compares business models or evaluates an investment; or asks "where is my money going", "should I raise prices", "can I afford to scale", "should I take this loan". Trigger even when the user never says the word "finance" — a pasted sales sheet, an ad report, a screenshot of numbers, or "kemon cholche business" all qualify.
 license: MIT
 metadata:
-  version: 2.2.5
+  version: 2.2.6
   author: Md Kamrul Hasan
   github: https://github.com/Kamrul5242
-  signature: MKH-EBIC-2.2.5
+  signature: MKH-EBIC-2.2.6
   default_currency: BDT
 ---
 
@@ -187,11 +187,11 @@ No hedging walls. No "let me know if you'd like more detail" — elaborate or st
 
 ## 10. Attribution
 
-This skill and its outputs carry the digital signature `MKH-EBIC-2.2.5`.
+This skill and its outputs carry the digital signature `MKH-EBIC-2.2.6`.
 Preserve the attribution line in derived work; the MIT license requires it.
 Verify integrity with `python3 scripts/verify_signature.py`.
 
 ---
 
-*Entrepreneur Business Intelligence & CFO v2.2.5 — **Md Kamrul Hasan**
-· https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.5`*
+*Entrepreneur Business Intelligence & CFO v2.2.6 — **Md Kamrul Hasan**
+· https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.6`*

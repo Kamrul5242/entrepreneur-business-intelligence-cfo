@@ -158,4 +158,4 @@ author attribution. Exits non-zero if anything was modified or stripped.
 ---
 
 *Entrepreneur Business Intelligence & CFO — **Md Kamrul Hasan** ·
-https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.5`*
+https://github.com/Kamrul5242 · signature `MKH-EBIC-2.2.6`*

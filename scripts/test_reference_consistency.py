@@ -16,7 +16,7 @@ against `pl_model`. Rewording is free; changing the arithmetic is not.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.5
+Signature: MKH-EBIC-2.2.6
 """
 
 import io
@@ -504,6 +504,138 @@ class ReleaseProcess(unittest.TestCase):
     def test_ci_defines_no_secrets(self):
         self.assertNotIn("secrets.", self._ci(),
                          "ci.yml exposes a secret to pull-request code")
+
+
+class BumpMechanics(unittest.TestCase):
+    """Run a real bump on a throwaway copy and inspect what moved.
+
+    Registered declarations must advance; CHANGELOG and every historical
+    reference must come back byte-for-byte identical.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        import shutil, subprocess, tempfile
+        import release_version as rv
+        cls.rv = rv
+        cur = rv.current_version()
+        major, minor, patch = (int(x) for x in cur.split("."))
+        cls.old, cls.new = cur, "%d.%d.%d" % (major, minor, patch + 1)
+        cls.tmp = os.path.join(tempfile.mkdtemp(), "repo")
+        shutil.copytree(ROOT, cls.tmp)
+        r = subprocess.run([sys.executable,
+                            os.path.join(cls.tmp, "scripts", "release_version.py"),
+                            "--bump", cls.new],
+                           capture_output=True, text=True)
+        cls.output = r.stdout + r.stderr
+
+    @classmethod
+    def tearDownClass(cls):
+        import shutil
+        shutil.rmtree(os.path.dirname(cls.tmp), ignore_errors=True)
+
+    def _after(self, rel):
+        with io.open(os.path.join(self.tmp, *rel.split("/")), encoding="utf-8",
+                     newline="") as fh:
+            return fh.read()
+
+    def test_registered_declarations_all_advanced(self):
+        for rel, needle in (
+                ("SKILL.md", "version: %s" % self.new),
+                ("SKILL.md", "signature: MKH-EBIC-%s" % self.new),
+                ("README.md", "badge/version-%s-blue" % self.new),
+                ("README.md", "MKH--EBIC--%s" % self.new),
+                ("CITATION.cff", 'version: "%s"' % self.new),
+                ("llms.txt", "Current version: %s" % self.new),
+                ("scripts/verify_signature.py", 'VERSION = "%s"' % self.new),
+                ("scripts/verify_signature.py", "MKH-EBIC-%s" % self.new),
+                ("scripts/build_dashboard.py", 'SIG = "MKH-EBIC-%s"' % self.new)):
+            self.assertIn(needle, self._after(rel),
+                          "%s did not advance to %s" % (rel, self.new))
+
+    def test_no_previous_signature_token_survives(self):
+        stale = []
+        for rel in self.rv.tracked_files():
+            if rel in self.rv.NEVER_BUMP:
+                continue
+            if ("MKH-EBIC-%s" % self.old) in self._after(rel):
+                stale.append(rel)
+        self.assertEqual(stale, [],
+                         "previous signature token left in: %r" % stale)
+
+    def test_release_tool_bumps_itself(self):
+        """A release-management file must not silently stay behind."""
+        self.assertIn("MKH-EBIC-%s" % self.new,
+                      self._after("scripts/release_version.py"))
+
+    def test_changelog_is_byte_identical(self):
+        self.assertEqual(self._after("CHANGELOG.md"),
+                         read(os.path.join(ROOT, "CHANGELOG.md")),
+                         "the bump rewrote CHANGELOG history")
+
+    def test_historical_references_are_byte_identical(self):
+        changed = []
+        for rel in self.rv.tracked_files():
+            if rel in self.rv.NEVER_BUMP:
+                continue
+            before = read(os.path.join(ROOT, *rel.split("/")))
+            after = self._after(rel)
+            for b, a in zip(before.split("\n"), after.split("\n")):
+                if self.rv.HISTORICAL.search(b) and a != b:
+                    changed.append("%s: %r -> %r" % (rel, b.strip(), a.strip()))
+        self.assertEqual(changed, [],
+                         "historical prose was rewritten: %r" % changed)
+
+    def test_documentation_example_is_not_corrupted(self):
+        """`--bump 2.2.5` in a usage example is documentation, not a
+        declaration, and must be left exactly as written."""
+        before = read(os.path.join(ROOT, "scripts", "release_version.py"))
+        m = re.search(r"--bump (\d+\.\d+\.\d+)", before)
+        if not m:
+            self.skipTest("no --bump example in the tool docstring")
+        self.assertIn("--bump %s" % m.group(1),
+                      self._after("scripts/release_version.py"),
+                      "the bump rewrote a usage example")
+
+
+class DependencyReproducibility(unittest.TestCase):
+    """A substituted artifact on the index must not install silently."""
+
+    REQ = os.path.join(ROOT, "requirements.txt")
+    CI = os.path.join(ROOT, ".github", "workflows", "ci.yml")
+
+    def test_every_pinned_package_carries_hashes(self):
+        text = read(self.REQ)
+        pinned = re.findall(r"(?m)^([A-Za-z0-9._-]+)==([\w.]+)", text)
+        self.assertTrue(pinned, "requirements.txt pins no package")
+        for name, _ in pinned:
+            block = re.search(
+                r"(?m)^%s==[\w.]+((?:\s*\\\s*\n\s*--hash=sha256:[0-9a-f]{64})+)"
+                % re.escape(name), text)
+            self.assertIsNotNone(
+                block, "%s is pinned without any --hash line" % name)
+
+    def test_ci_enforces_hashes_with_a_valid_flag(self):
+        ci = read(self.CI)
+        self.assertNotIn(
+            "--require-hashes=false", ci,
+            "pip has no --require-hashes=false form; this install step fails")
+        self.assertRegex(
+            ci, r"pip install\s+--require-hashes\s+-r requirements\.txt",
+            "CI does not enforce hashes when installing")
+
+    def test_action_sha_comments_name_a_release(self):
+        for line in read(self.CI).split("\n"):
+            m = re.search(r"uses:\s*[\w./-]+@([0-9a-f]{40})\s*#\s*(\S+)", line)
+            if m:
+                self.assertRegex(
+                    m.group(2), r"^v\d",
+                    "SHA-pinned action carries a comment that names no "
+                    "release: %r" % line.strip())
+        self.assertGreaterEqual(
+            len(re.findall(r"uses:\s*[\w./-]+@[0-9a-f]{40}\s*#\s*v\d",
+                           read(self.CI))), 2,
+            "expected both actions SHA-pinned with a version comment")
 
 
 if __name__ == "__main__":
