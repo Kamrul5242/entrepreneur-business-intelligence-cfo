@@ -19,6 +19,26 @@ No calculator, workbook or methodology change.
   committed workbook "byte for byte" without qualification. Corrected to say
   what is true, and to name the platform limit rather than omit it.
 
+### Fixed - the artifact depended on a package that was never pinned
+- The real reason CI could not reproduce the workbook. openpyxl uses lxml
+  whenever lxml happens to be importable, and falls back to the standard
+  library otherwise. The two serialise the same workbook differently:
+  `<tabColor rgb="00C9A227"/>` against `<tabColor rgb="00C9A227" />`, and
+  namespace declarations in different places. The committed workbook had been
+  built on a machine carrying lxml, which requirements.txt does not pin, so
+  the published artifact could not be reproduced from the published
+  dependency set by anyone - the runner included.
+- Diagnosed from the runner, not by guessing: the failure now prints the
+  differing part, both sizes and the bytes around the first difference, and
+  named docProps/core.xml and the sheet XML immediately. A Windows rebuild
+  under Python 3.12 and 3.14 was content-identical, which ruled out both the
+  platform and the interpreter before lxml was even considered.
+- The workbook is now built with the standard library serialiser, so it
+  depends only on what requirements.txt pins. In an environment that carries
+  lxml the comparison is not meaningful, and the test says so instead of
+  asserting something it cannot; CI has no lxml, so it runs there on every
+  push.
+
 ### Corrected - a claim made in the 2.2.6 notes
 - The 2.2.6 entry says the broken install step "was never noticed because no
   workflow run had yet executed". That was wrong. Four runs existed and all

@@ -19,8 +19,8 @@
       "signed": false
     },
     "CHANGELOG.md": {
-      "sha256": "cf86c4f309410934d8e4a6adca277c2cedf254ef8f1b0e017c702bf441c818d6",
-      "bytes": 34876,
+      "sha256": "239608cf43746c88a269f6aa99f1b82058c8e8fc1fc9147dbc61a6b53aacd6df",
+      "bytes": 36179,
       "signed": true
     },
     "CITATION.cff": {
@@ -64,13 +64,13 @@
       "signed": true
     },
     "assets/cfo-premium-dashboard.xlsx": {
-      "sha256": "993850d504cc6cff432562931fd3cc6ebc58979cfa34cb216bb4f9ff1683f67a",
-      "bytes": 27081,
+      "sha256": "01a89aea072960cba187ae06159a9067be1679e923f944a21835e1efcba5feed",
+      "bytes": 27097,
       "signed": true
     },
     "docs/INSTALL.md": {
-      "sha256": "e98f10db9e7fbc214d62583d4562d78a18b11a5c0ad6fb1dab97c804a56b317b",
-      "bytes": 5513,
+      "sha256": "2c1465dcde5add7b813052d0e4e31059c1c73f2a0873f2d7ff18a1a7ff6172bb",
+      "bytes": 5727,
       "signed": true
     },
     "docs/screenshots/00-start-here.png": {
@@ -214,8 +214,8 @@
       "signed": true
     },
     "scripts/test_workbook_excel.py": {
-      "sha256": "3ac85f621225749905206173009f4181552ce5e07bcbfb4e06a5ad561a74deb0",
-      "bytes": 18623,
+      "sha256": "e393fc8fe89823753eabfe405496a02bb21d6e82be32d1877e31338f4eb56b02",
+      "bytes": 19718,
       "signed": true
     },
     "scripts/verify_signature.py": {

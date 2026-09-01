@@ -143,7 +143,10 @@ CFO_WORKBOOK=/tmp/rebuild.xlsx python3 scripts/test_workbook_excel.py
 
 Requires `openpyxl==3.1.5` (see `requirements.txt`). The pin matters: the build
 is deterministic, so a rebuild reproduces the committed workbook part for part,
-and a different openpyxl changes the content. Two builds on one machine are
+and a different openpyxl changes the content. The canonical workbook is built with the standard library XML
+serialiser. If lxml is installed, openpyxl uses it instead and writes
+different (equally valid) XML, so your rebuild will not match the
+committed file. Two builds on one machine are
 byte-identical; a Linux rebuild of a Windows-built workbook is not, because
 zlib compresses identically-shaped input differently across platforms. Always open a rebuild in Excel, or
 run the workbook tests against it, before shipping it.

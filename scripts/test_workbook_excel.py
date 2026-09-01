@@ -437,14 +437,32 @@ class Reproducibility(unittest.TestCase):
         """Strict on purpose. If this fails, either the workbook was edited by
         hand or openpyxl is not the pinned version in requirements.txt.
 
-        Compared by content, not archive bytes: the committed workbook is
-        built on Windows and CI rebuilds on Linux, where zlib compresses the
-        same input differently. Byte-identity is asserted separately, between
-        two builds on one machine, by test_two_builds_are_byte_identical.
+        Compared by content, not archive bytes: an .xlsx is a ZIP, and zlib
+        emits different compressed bytes for identical input across platforms.
+        Byte-identity is asserted separately, between two builds on one
+        machine, by test_two_builds_are_byte_identical.
+
+        THE CANONICAL ARTIFACT IS BUILT WITH THE STANDARD LIBRARY SERIALIZER.
+        openpyxl silently uses lxml whenever lxml is importable, and the two
+        write different XML for the same workbook - `<tabColor rgb="..."/>`
+        against `<tabColor rgb="..." />`, and namespace declarations in
+        different places. That made the committed workbook depend on a package
+        requirements.txt does not pin, so nobody without lxml could reproduce
+        it and CI failed here on every push. The artifact is now built from
+        the pinned set alone. An environment carrying lxml produces a
+        different, equally valid file, so the comparison is not meaningful
+        there and says so rather than asserting something it cannot.
         """
         import tempfile
         if os.environ.get("CFO_WORKBOOK"):
             self.skipTest("CFO_WORKBOOK overrides the committed artifact")
+        import openpyxl
+        if getattr(openpyxl, "LXML", False):
+            self.skipTest(
+                "this environment has lxml, so openpyxl serialises XML "
+                "differently from the pinned set the committed workbook is "
+                "built with; uninstall lxml to run this check locally - CI "
+                "runs it on every push")
         committed = os.path.join(ROOT, "assets", "cfo-premium-dashboard.xlsx")
         if not os.path.exists(committed):
             self.skipTest("committed workbook not present")
