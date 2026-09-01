@@ -46,6 +46,43 @@ WORKBOOK = os.environ.get(
 
 sys.path.insert(0, HERE)
 
+
+def _content_diff(a_path, b_path, limit=4):
+    """Name the parts that differ, so a failure says WHICH part moved.
+
+    A bare hash mismatch tells you the workbook changed and nothing more. On
+    a runner you cannot open a debugger, so the failure has to carry its own
+    evidence: the part names, their sizes, and the first differing offset.
+    """
+    import zipfile
+    lines = []
+    with zipfile.ZipFile(a_path) as za, zipfile.ZipFile(b_path) as zb:
+        na = [i.filename for i in za.infolist()]
+        nb = [i.filename for i in zb.infolist()]
+        if na != nb:
+            lines.append("  part order or set differs: only-committed=%r "
+                         "only-rebuilt=%r"
+                         % (sorted(set(na) - set(nb)), sorted(set(nb) - set(na))))
+        for name in na:
+            if name not in nb:
+                continue
+            x, y = za.read(name), zb.read(name)
+            if x == y:
+                continue
+            at = next((i for i in range(min(len(x), len(y))) if x[i] != y[i]),
+                      min(len(x), len(y)))
+            lines.append("  %s: committed %d bytes, rebuilt %d bytes, first "
+                         "difference at byte %d\n    committed: %r\n"
+                         "    rebuilt:   %r"
+                         % (name, len(x), len(y), at,
+                            x[max(0, at - 40):at + 40],
+                            y[max(0, at - 40):at + 40]))
+            if len(lines) >= limit:
+                lines.append("  ... further differing parts not shown")
+                break
+    return "\n differing parts:\n" + "\n".join(lines) if lines else ""
+
+
 EXPECTED_SHEETS = ["0. Start Here", "1. Setup", "2. Dashboard",
                    "3. Scenarios", "4. Trend", "Ref", "Signature"]
 EXPECTED_FORMULAS = 161
@@ -415,11 +452,13 @@ class Reproducibility(unittest.TestCase):
         target = os.path.join(d, "rebuild.xlsx")
         self._build(target)
         rebuilt, expected = _content_digest(target), _content_digest(committed)
+        detail = "" if rebuilt == expected else _content_diff(committed, target)
         shutil.rmtree(d, ignore_errors=True)
         self.assertEqual(
             rebuilt, expected,
             "a rebuild does not reproduce the committed workbook's content; "
-            "check that openpyxl matches the pin in requirements.txt")
+            "check that openpyxl matches the pin in requirements.txt.%s"
+            % detail)
 
 
 if __name__ == "__main__":

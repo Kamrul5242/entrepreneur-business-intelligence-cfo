@@ -214,8 +214,8 @@
       "signed": true
     },
     "scripts/test_workbook_excel.py": {
-      "sha256": "ebb9cf5cabb42610303763a2ceb1cbf0ef6754ccd8de0528da65f77ef81f2279",
-      "bytes": 16878,
+      "sha256": "3ac85f621225749905206173009f4181552ce5e07bcbfb4e06a5ad561a74deb0",
+      "bytes": 18623,
       "signed": true
     },
     "scripts/verify_signature.py": {
