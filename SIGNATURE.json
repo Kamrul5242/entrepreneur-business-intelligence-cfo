@@ -199,8 +199,8 @@
       "signed": true
     },
     "scripts/release_version.py": {
-      "sha256": "888cbc73ede12a0e281c927b1a49c877c9cad8911747670b8e6114de83e68111",
-      "bytes": 7830,
+      "sha256": "f4e5716e341ca7cea483ab6b06c7a31a3503b0f04a555ce421c65468230963c7",
+      "bytes": 8505,
       "signed": true
     },
     "scripts/test_cfo_calc.py": {

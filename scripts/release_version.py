@@ -33,7 +33,7 @@ newer, or if the previous version is still declared outside the CHANGELOG.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.4
+Signature: MKH-EBIC-2.2.5
 """
 
 import argparse
@@ -72,9 +72,25 @@ BINARY = (".png", ".xlsx", ".pyc")
 
 
 def tracked_files():
-    out = subprocess.run(["git", "-C", ROOT, "ls-files"],
-                         capture_output=True, text=True).stdout.split()
-    return [f for f in out if os.path.splitext(f)[1] not in BINARY]
+    """Tracked files plus anything staged or newly added.
+
+    A script introduced in the same release is still untracked when the bump
+    runs, so `git ls-files` alone silently skips it and it keeps the previous
+    signature. That happened to this very file during the release that
+    introduced it, and was caught only by the clean-clone gate.
+    """
+    seen = subprocess.run(["git", "-C", ROOT, "ls-files"],
+                          capture_output=True, text=True).stdout.split()
+    extra = subprocess.run(
+        ["git", "-C", ROOT, "ls-files", "--others", "--exclude-standard"],
+        capture_output=True, text=True).stdout.split()
+    out = []
+    for f in seen + extra:
+        if os.path.splitext(f)[1] in BINARY:
+            continue
+        if f not in out and os.path.exists(os.path.join(ROOT, *f.split("/"))):
+            out.append(f)
+    return out
 
 
 def read(rel):
