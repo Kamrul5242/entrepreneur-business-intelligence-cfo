@@ -7,8 +7,8 @@
 *Works on Claude, ChatGPT, Gemini, Cursor, Windsurf, GitHub Copilot, and any agent that reads `AGENTS.md`.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.2.3-blue.svg)](CHANGELOG.md)
-[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.3-C9A227.svg)](SIGNATURE.json)
+[![Version](https://img.shields.io/badge/version-2.2.4-blue.svg)](CHANGELOG.md)
+[![Signature](https://img.shields.io/badge/signature-MKH--EBIC--2.2.4-C9A227.svg)](SIGNATURE.json)
 [![Currencies](https://img.shields.io/badge/currencies-34%20%7C%20BDT%20default-1E7B45.svg)](references/08-currency.md)
 [![Formulas](https://img.shields.io/badge/dashboard-161%20live%20formulas-1E7B45.svg)](assets/cfo-premium-dashboard.xlsx)
 
@@ -130,7 +130,7 @@ cp -r entrepreneur-business-intelligence-cfo \
 ```
 Configure → Instructions →
 paste platforms/universal-compact-core.md
-(7,867 chars — fits the 8,000 cap)
+(7,873 chars — fits the 8,000 cap)
 ```
 
 </td><td width="50%">
@@ -291,7 +291,7 @@ a report. Full details in [`SKILL.md §1`](SKILL.md).
 
 ## Digital signature
 
-Signature ID **`MKH-EBIC-2.2.3`**, embedded in 9 independent locations across
+Signature ID **`MKH-EBIC-2.2.4`**, embedded in 9 independent locations across
 the repo, plus a SHA-256 manifest of every file.
 
 ```bash
@@ -341,7 +341,7 @@ entrepreneur-business-intelligence-cfo/
 │   ├── verify_signature.py           Integrity + attribution checker
 │   ├── test_cfo_calc.py              57 calculator tests, stdlib unittest
 │   ├── test_workbook_excel.py        13 workbook tests, incl. real Excel
-│   └── test_reference_consistency.py 10 tests: docs vs code, semantic
+│   └── test_reference_consistency.py 17 tests: docs vs code, semantic
 ├── assets/
 │   ├── cfo-premium-dashboard.xlsx    Live 7-sheet dashboard, 161 formulas
 │   ├── business-data-intake-template.csv   Blank — fill this in
@@ -370,6 +370,6 @@ in copies and substantial portions.
 <div align="center">
 
 **Md Kamrul Hasan** · [github.com/Kamrul5242](https://github.com/Kamrul5242) ·
-signature `MKH-EBIC-2.2.3`
+signature `MKH-EBIC-2.2.4`
 
 </div>

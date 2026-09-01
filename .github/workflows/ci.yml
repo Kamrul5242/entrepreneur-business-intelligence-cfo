@@ -1,0 +1,52 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: calculator, references, provenance (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The calculator and its tests are standard library only. openpyxl is
+      # needed for the workbook checks, pinned because a different version
+      # changes the workbook hash.
+      - name: Install workbook dependency
+        run: python -m pip install -r requirements.txt
+
+      - name: Calculator regression tests
+        run: python scripts/test_cfo_calc.py
+
+      - name: Reference and documentation consistency
+        run: python scripts/test_reference_consistency.py
+
+      - name: Workbook structure (Excel engine tests skip on Linux)
+        run: python scripts/test_workbook_excel.py
+
+      - name: Signature and manifest verification
+        run: python scripts/verify_signature.py
+
+      - name: Rebuild must reproduce the committed workbook
+        run: |
+          python scripts/build_dashboard.py -o /tmp/rebuild.xlsx
+          python - <<'PY'
+          import hashlib, sys
+          def sha(p):
+              h = hashlib.sha256()
+              with open(p, 'rb') as fh:
+                  for chunk in iter(lambda: fh.read(65536), b''):
+                      h.update(chunk)
+              return h.hexdigest()
+          a, b = sha('assets/cfo-premium-dashboard.xlsx'), sha('/tmp/rebuild.xlsx')
+          print('committed', a)
+          print('rebuilt  ', b)
+          sys.exit(0 if a == b else 'rebuild is not byte-identical')
+          PY

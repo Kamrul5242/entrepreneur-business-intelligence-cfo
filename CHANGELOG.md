@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.2.4 - 2026-08-28
+
+A claims-integrity release. No calculator, workbook or methodology change.
+
+### Fixed - the repository contradicted itself about its own size
+- README said `universal-compact-core.md` is **7,867 characters** while
+  `docs/INSTALL.md` said **7,873** and the file is **7,873**. v2.2.3 corrected
+  one location and left the other.
+- README claimed `test_reference_consistency.py` had **10** tests; it had 12.
+
+### Added - published numbers are now assertions, not prose
+- `PublishedClaims` derives every self-referential number and compares it:
+  the compact-core character count wherever the 8,000-character cap is
+  mentioned, the per-file test counts in the repository tree, and the version
+  declared across SKILL.md, the README badge, SIGNATURE.json,
+  verify_signature.py, CITATION.cff and llms.txt. It also asserts the
+  CHANGELOG has an entry for the current version, and that no file cites a
+  version the CHANGELOG never records - the guard against a blanket sweep
+  inventing a version inside historical prose.
+- Proven to fail first: restoring the stale README values produced
+  "README.md claims universal-compact-core.md is 7867 characters; it is 7873"
+  and "README claims test_reference_consistency.py has 10 tests; it has 17".
+
+### Fixed - the documented-command runner was not shell-accurate
+- `DocumentedCommandsRun` split example commands on whitespace, which would
+  mis-handle a quoted value or a path containing spaces and could test
+  something a user would never actually run. It now uses `shlex.split`.
+- The test helper leaked open file handles, filling test output with
+  ResourceWarnings; it now closes them.
+
+### Added - public CI
+- `.github/workflows/ci.yml` runs the calculator, reference and workbook
+  suites, signature verification, and a byte-identical rebuild check on
+  Ubuntu for every push and pull request. The Excel engine tests skip on
+  Linux by design; the structural half still runs. CI configuration lives
+  outside the signed manifest, which covers the distributed skill only.
+
+### Known limitation
+- Version bumping is still a repository-wide string replacement. It has three
+  times rewritten historical prose, and did so again this release before
+  being caught. `test_prose_only_cites_versions_that_exist` now catches the
+  case where a sweep invents an unreleased version, but it cannot detect a
+  sweep that rewrites "before v2.2.1" into a version that does exist. A
+  targeted bump that edits only declared version sites is the real fix.
+
 ## 2.2.3 - 2026-08-28
 
 A documentation-integrity release. No calculator or workbook logic changed.

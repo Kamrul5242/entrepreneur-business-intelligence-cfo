@@ -2,7 +2,7 @@
 
 > An AI skill (SKILL.md-based) that acts as a practical CFO for founders and small businesses. It runs every question through a fixed pipeline — Extract, Validate, Calculate, Reconcile, Diagnose, Stress-test, Recommend — instead of reciting financial ratio definitions. Ships with a deterministic Python calculator, a 161-formula 7-sheet live Excel dashboard, and BDT-default 34-currency support with South Asian lakh/crore handling.
 
-Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.3. Signature: MKH-EBIC-2.2.3, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
+Author: Md Kamrul Hasan (github.com/Kamrul5242). License: MIT, attribution required. Current version: 2.2.4. Signature: MKH-EBIC-2.2.4, verifiable via `scripts/verify_signature.py` against `SIGNATURE.json` (a SHA-256 manifest of every file in the repository).
 
 This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (compact core fits the 8,000-character instruction cap), a Cursor `.mdc` rule, a Windsurf rule, GitHub Copilot instructions, a Gemini Gem, an `AGENTS.md` file, or a raw system prompt.
 
@@ -11,7 +11,7 @@ This skill is portable — it runs as a Claude Skill, an OpenAI Custom GPT (comp
 - [SKILL.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SKILL.md): The router. Token-budget policy, workflow, hard rules (never fabricate a number, never hide a loss), priority ladder (survival before growth), currency defaults.
 - [README.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/README.md): What the skill is, why it differs from a generic "act as a CFO" prompt, install instructions per platform.
 - [CHANGELOG.md](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/CHANGELOG.md): Version history, including the specific v1.0 errors corrected in v2.0 (missing liquidity/solvency formulas, undefined LTV, inconsistent margin denominators).
-- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of every file in the repository (40 at v2.2.3), for tamper detection.
+- [SIGNATURE.json](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/SIGNATURE.json): SHA-256 hash manifest of every file in the repository (40 at v2.2.4), for tamper detection.
 - [LICENSE](https://github.com/Kamrul5242/entrepreneur-business-intelligence-cfo/blob/main/LICENSE): MIT.
 
 ## Reference library (loaded on demand, 1-3 files per question)

@@ -16,13 +16,14 @@ against `pl_model`. Rewording is free; changing the arithmetic is not.
 Author: Md Kamrul Hasan
 GitHub: https://github.com/Kamrul5242
 License: MIT
-Signature: MKH-EBIC-2.2.3
+Signature: MKH-EBIC-2.2.4
 """
 
 import io
 import os
 import random
 import re
+import shlex
 import sys
 import unittest
 
@@ -37,7 +38,8 @@ MINUS = "−"
 
 
 def read(path):
-    return io.open(path, encoding="utf-8", newline="").read()
+    with io.open(path, encoding="utf-8", newline="") as fh:
+        return fh.read()
 
 
 def block(text, name):
@@ -312,7 +314,10 @@ class DocumentedCommandsRun(unittest.TestCase):
         checked = 0
         for rel in self.DOCS:
             for example in self._examples(rel):
-                argv = example.split()
+                # shlex, not split(): a documented command may contain
+                # quoted values or a path with spaces, and naive
+                # splitting would test something the user never runs.
+                argv = shlex.split(example)
                 argv[0] = sys.executable
                 argv[1] = os.path.join(ROOT, "scripts", "cfo_calc.py")
                 r = subprocess.run(argv, capture_output=True, text=True, cwd=ROOT)
@@ -334,6 +339,115 @@ class DocumentedCommandsRun(unittest.TestCase):
         missing = [c for c in cfo_calc.COMMANDS if c not in text]
         self.assertEqual(missing, [],
                          "docs/INSTALL.md does not mention command(s): %r" % missing)
+
+
+class PublishedClaims(unittest.TestCase):
+    """Numbers the documentation states about itself must be true.
+
+    These drifted repeatedly: README said the compact core was 7,867
+    characters while INSTALL.md said 7,873 and the file was 7,873; README
+    claimed 10 reference tests when there were 12. Every published count is
+    now derived and compared rather than trusted.
+    """
+
+    DOCS = ("README.md", "docs/INSTALL.md")
+
+    def test_compact_core_size_claims_are_accurate(self):
+        actual = len(read(os.path.join(ROOT, "platforms",
+                                       "universal-compact-core.md")))
+        checked = 0
+        for rel in self.DOCS:
+            path = os.path.join(ROOT, *rel.split("/"))
+            if not os.path.exists(path):
+                continue
+            for line in read(path).split("\n"):
+                if "8,000" not in line:
+                    continue
+                m = re.search(r"([\d,]+)\s*(?:chars|characters)", line)
+                if not m:
+                    continue
+                claimed = int(m.group(1).replace(",", ""))
+                self.assertEqual(
+                    claimed, actual,
+                    "%s claims universal-compact-core.md is %d characters; "
+                    "it is %d" % (rel, claimed, actual))
+                checked += 1
+        self.assertGreater(checked, 0, "no size claim found to verify")
+
+    def test_repository_tree_test_counts_are_accurate(self):
+        checked = 0
+        for line in read(os.path.join(ROOT, "README.md")).split("\n"):
+            m = re.search(r"(test_[a-z_]+\.py)\s+(\d+)\s+(?:\S+\s+)?tests", line)
+            if not m:
+                continue
+            fname, claimed = m.group(1), int(m.group(2))
+            path = os.path.join(ROOT, "scripts", fname)
+            self.assertTrue(os.path.exists(path),
+                            "README references a missing test file: %s" % fname)
+            actual = len(re.findall(r"\n    def test_", read(path)))
+            self.assertEqual(claimed, actual,
+                             "README claims %s has %d tests; it has %d"
+                             % (fname, claimed, actual))
+            checked += 1
+        self.assertGreaterEqual(
+            checked, 3, "expected three test files in the README tree, found %d"
+            % checked)
+
+    def test_version_is_declared_identically_everywhere(self):
+        """A partial sweep leaves the repository claiming two versions."""
+        import json
+        found = {}
+        skill = read(os.path.join(ROOT, "SKILL.md"))
+        found["SKILL.md"] = re.search(r"^\s*version:\s*(\S+)", skill, re.M).group(1)
+        found["SKILL.md signature"] = re.search(
+            r"^\s*signature:\s*MKH-EBIC-(\S+)", skill, re.M).group(1)
+        found["README badge"] = re.search(
+            r"badge/version-([0-9.]+)-",
+            read(os.path.join(ROOT, "README.md"))).group(1)
+        man = json.loads(read(os.path.join(ROOT, "SIGNATURE.json")))
+        found["SIGNATURE.json"] = man["version"]
+        found["SIGNATURE.json signature"] = man["signature"].replace("MKH-EBIC-", "")
+        found["verify_signature.py"] = re.search(
+            r'VERSION = "([^"]+)"',
+            read(os.path.join(ROOT, "scripts", "verify_signature.py"))).group(1)
+        found["CITATION.cff"] = re.search(
+            r"^version:\s*[\"']?([0-9.]+)",
+            read(os.path.join(ROOT, "CITATION.cff")), re.M).group(1)
+        found["llms.txt"] = re.search(
+            r"Current version:\s*([0-9]+\.[0-9]+\.[0-9]+)",
+            read(os.path.join(ROOT, "llms.txt"))).group(1)
+        self.assertEqual(len(set(found.values())), 1,
+                         "version declared inconsistently: %r" % (found,))
+
+    def test_changelog_documents_the_current_version(self):
+        current = re.search(r"^\s*version:\s*(\S+)",
+                            read(os.path.join(ROOT, "SKILL.md")), re.M).group(1)
+        self.assertRegex(
+            read(os.path.join(ROOT, "CHANGELOG.md")),
+            r"##\s*%s\b" % re.escape(current),
+            "CHANGELOG has no entry for the current version %s" % current)
+
+    def test_prose_only_cites_versions_that_exist(self):
+        """A blanket sweep has three times rewritten historical prose such as
+        "before v2.2.1" into a version that never carried that meaning. Every
+        version named anywhere must at least appear in the CHANGELOG."""
+        known = set(re.findall(r"^##\s*([0-9]+\.[0-9]+\.[0-9]+)",
+                               read(os.path.join(ROOT, "CHANGELOG.md")), re.M))
+        self.assertTrue(known, "no versions parsed from CHANGELOG")
+        offenders = []
+        for rel in ("README.md", "docs/INSTALL.md", "SKILL.md",
+                    "scripts/pl_model.py", "scripts/cfo_calc.py",
+                    "scripts/test_cfo_calc.py",
+                    "scripts/test_reference_consistency.py"):
+            path = os.path.join(ROOT, *rel.split("/"))
+            if not os.path.exists(path):
+                continue
+            for cited in set(re.findall(r"v([0-9]+\.[0-9]+\.[0-9]+)", read(path))):
+                if cited not in known:
+                    offenders.append("%s cites v%s" % (rel, cited))
+        self.assertEqual(
+            offenders, [],
+            "version(s) cited that the CHANGELOG never records: %r" % offenders)
 
 
 if __name__ == "__main__":
